@@ -38,10 +38,11 @@ const firebaseConfig = {
   measurementId: "G-9HNP8CVNYC"
 };
 
-
 // Инициализация
+console.log("Инициализация Firebase...");
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+console.log("Firebase инициализирован, projectId:", app.options.projectId);
 
 // Логика кнопки
 document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
@@ -49,19 +50,23 @@ document.getElementById("feedbackForm").addEventListener("submit", async (e) => 
     
     const nameInput = document.getElementById("userName").value;
     const emailInput = document.getElementById("userEmail").value;
+    
+    console.log("Попытка отправки данных:", { name: nameInput, email: emailInput });
 
     try {
-    // Запись в коллекцию "requests"
-    await addDoc(collection(db, "requests"), {
-    name: nameInput,
-    email: emailInput,
-    timestamp: new Date()
-    });
-    alert("Готово! Данные сохранены в Firebase.");
-    document.getElementById("feedbackForm").reset();
+        // Запись в коллекцию "requests"
+        console.log("Отправка в коллекцию 'requests'...");
+        const docRef = await addDoc(collection(db, "requests"), {
+            name: nameInput,
+            email: emailInput,
+            timestamp: new Date()
+        });
+        console.log("Документ успешно записан с ID:", docRef.id);
+        alert("Готово! Данные сохранены в Firebase.");
+        document.getElementById("feedbackForm").reset();
     } catch (error) {
-    console.error("Ошибка записи: ", error);
-    alert("Ошибка при отправке.");
+        console.error("ПОДРОБНАЯ ОШИБКА:", error);
+        alert("Ошибка при отправке: " + error.message);
     }
 });
 
