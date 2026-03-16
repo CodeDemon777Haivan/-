@@ -10,8 +10,25 @@
     button { width: 100%; padding: 10px; background: #f4b400; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 5px; }
     button:hover { background: #dfa400; }
     .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
-    .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; }
-    .like-btn:hover { background: #e2e6ea; }
+    .like-btn { 
+        cursor: pointer; 
+        border: none; 
+        background: #ffebee; 
+        color: #c62828;
+        font-weight: bold;
+        padding: 8px 16px; 
+        border-radius: 20px; 
+        font-size: 14px; 
+        transition: 0.2s; 
+        border: 1px solid #ef9a9a;
+    }
+    .like-btn:hover { 
+        background: #ffcdd2;
+        transform: scale(1.05);
+    }
+    .like-btn:active {
+        transform: scale(0.95);
+    }
     .time { font-size: 11px; color: #999; float: right; }
     #feed { width: 100%; max-width: 500px; }
     </style>
@@ -58,9 +75,13 @@ console.log("Firebase инициализирован, projectId:", app.options.p
 window.processLike = async (id) => {
     const docRef = doc(db, "requests", id);
     try {
-        await updateDoc(docRef, { likes: increment(1) });
+        await updateDoc(docRef, { 
+            likes: increment(1) 
+        });
+        console.log("Лайк добавлен, документ:", id);
     } catch (error) {
-        console.error("Validation Error:", error.message);
+        console.error("Ошибка при добавлении лайка:", error.message);
+        alert("Не удалось поставить лайк: " + error.message);
     }
 };
 
@@ -86,11 +107,10 @@ document.getElementById("feedbackForm").addEventListener("submit", async (e) => 
             timestamp: serverTimestamp()
         });
         console.log("Документ успешно записан с ID:", docRef.id);
-        alert("Готово! Данные сохранены в Firebase.");
         document.getElementById("feedbackForm").reset();
     } catch (error) {
         console.error("ПОДРОБНАЯ ОШИБКА:", error);
-        alert("Ошибка безопасности: Данные отклонены сервером.");
+        alert("Ошибка безопасности: Данные отклонены сервером.\n" + error.message);
     } finally {
         btn.disabled = false;
     }
@@ -104,17 +124,42 @@ onSnapshot(q, (snapshot) => {
     
     snapshot.forEach((doc) => {
         const data = doc.data();
-        const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleTimeString() : 'только что';
         
-        feed.innerHTML += `
-            <div class="post">
-                <span class="time">${timestamp}</span>
-                <b>${data.name || 'Без имени'}</b>
-                <p style="margin: 5px 0;">${data.email || 'Нет email'}</p>
-                <button class="like-btn" onclick="processLike('${doc.id}')">❤️ ${data.likes || 0}</button>
-            </div>
+        // Обработка времени
+        let timestamp = 'только что';
+        if (data.timestamp) {
+            try {
+                timestamp = data.timestamp.toDate().toLocaleString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+            } catch (e) {
+                timestamp = 'дата неизвестна';
+            }
+        }
+        
+        // Создаем элемент поста
+        const postDiv = document.createElement('div');
+        postDiv.className = 'post';
+        postDiv.innerHTML = `
+            <span class="time">${timestamp}</span>
+            <b>${data.name || 'Без имени'}</b>
+            <p style="margin: 5px 0;">${data.email || 'Нет email'}</p>
+            <button class="like-btn" data-id="${doc.id}">❤️ ${data.likes || 0}</button>
         `;
+        
+        // Добавляем обработчик на кнопку лайка
+        const likeBtn = postDiv.querySelector('.like-btn');
+        likeBtn.onclick = () => processLike(doc.id);
+        
+        feed.appendChild(postDiv);
     });
+    
+    console.log("Посты обновлены, всего:", snapshot.size);
+}, (error) => {
+    console.error("Ошибка синхронизации:", error);
 });
 </script>
 </body>
