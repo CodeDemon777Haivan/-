@@ -2,27 +2,103 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Статусы</title>
+    <title>Монитор группы</title>
     <style>
-        body { font-family: Arial; padding: 20px; }
-        .user { padding: 10px; margin: 5px 0; background: #f0f0f0; border-radius: 5px; display: flex; align-items: center; gap: 10px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        select, button { padding: 8px; margin: 5px; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .status-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .status-item:hover {
+            background: #e0e0e0;
+        }
+        .status-item.active {
+            background: #d4edda;
+            border-left: 4px solid green;
+        }
+        .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .user-name {
+            font-weight: bold;
+        }
+        .user-status {
+            color: #666;
+            font-size: 14px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        h3 {
+            margin-top: 0;
+            color: #333;
+        }
     </style>
 </head>
 <body>
 
-    <h3>Мой статус</h3>
-    <select id="status">
-        <option>Онлайн</option>
-        <option>Отошел</option>
-        <option>Не беспокоить</option>
-    </select>
-    <input type="color" id="color" value="#00ff00">
-    <button onclick="updateStatus()">Обновить</button>
+    <div class="card">
+        <h3>📋 Мой профиль</h3>
+        <p>Вы зашли как: <strong id="myName">Almas</strong></p>
+        <div class="status-list" id="myStatusList">
+            <div class="status-item" data-status="Учусь">📚 Учусь</div>
+            <div class="status-item" data-status="Кофе">☕ Кофе</div>
+            <div class="status-item" data-status="В игре">🎮 В игре</div>
+            <div class="status-item" data-status="Дома">🏠 Дома</div>
+        </div>
+        <button onclick="saveMyStatus()">Сохранить статус</button>
+    </div>
 
-    <h3>Пользователи</h3>
-    <div id="list"></div>
+    <div class="card">
+        <h3>👥 Монитор группы</h3>
+        <div id="groupList">
+            <!-- Тут будут пользователи -->
+        </div>
+    </div>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -33,36 +109,61 @@
         );
 
         const MY_ID = '02d2fdbf-329b-480c-a424-37670b045f1b';
+        let selectedStatus = 'Учусь';
 
-        window.updateStatus = async () => {
-            await supabase
+        // Выбор статуса
+        document.querySelectorAll('.status-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.status-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                selectedStatus = item.getAttribute('data-status');
+            });
+        });
+
+        // Сохранить статус
+        window.saveMyStatus = async () => {
+            const { error } = await supabase
                 .from('profiles')
-                .update({ 
-                    status: document.getElementById('status').value,
-                    color: document.getElementById('color').value 
-                })
+                .update({ status: selectedStatus })
                 .eq('id', MY_ID);
-            loadUsers();
+            
+            if (error) {
+                alert('Ошибка: ' + error.message);
+            } else {
+                alert('Статус обновлён!');
+                loadGroup();
+            }
         };
 
-        async function loadUsers() {
+        // Загрузить группу
+        async function loadGroup() {
             const { data } = await supabase
                 .from('profiles')
                 .select('*')
                 .order('username');
-            
-            const list = document.getElementById('list');
-            list.innerHTML = data.map(user => `
-                <div class="user">
-                    <div class="dot" style="background: ${user.color || '#ccc'}"></div>
-                    <strong>${user.username}</strong>
-                    <span>${user.status || 'Нет статуса'}</span>
-                </div>
-            `).join('');
+
+            if (data) {
+                const container = document.getElementById('groupList');
+                container.innerHTML = data.map(user => `
+                    <div class="user-item">
+                        <div>
+                            <span class="dot" style="background: ${user.color || '#ccc'}"></span>
+                            <span class="user-name">${user.username}</span>
+                        </div>
+                        <div class="user-status">${user.status || 'Статус не задан'}</div>
+                    </div>
+                `).join('');
+
+                // Показать свое имя
+                const me = data.find(u => u.id === MY_ID);
+                if (me) {
+                    document.getElementById('myName').innerText = me.username;
+                }
+            }
         }
 
-        loadUsers();
-        setInterval(loadUsers, 3000);
+        loadGroup();
+        setInterval(loadGroup, 5000);
     </script>
 </body>
 </html>
