@@ -1,124 +1,68 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supabase Статусы</title>
+    <title>Статусы</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-        .user-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            margin: 5px 0;
-            background: #f5f5f5;
-            border-radius: 8px;
-            gap: 10px;
-        }
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        #myInfo {
-            background: #e3f2fd;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .controls {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        select, button {
-            padding: 8px 12px;
-            font-size: 14px;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
+        body { font-family: Arial; padding: 20px; }
+        .user { padding: 10px; margin: 5px 0; background: #f0f0f0; border-radius: 5px; display: flex; align-items: center; gap: 10px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        select, button { padding: 8px; margin: 5px; }
     </style>
 </head>
 <body>
-    <div id="myInfo"></div>
-    <div class="controls">
-        <select id="statusSelect">
-            <option value="Онлайн">Онлайн</option>
-            <option value="Отошел">Отошел</option>
-            <option value="Не беспокоить">Не беспокоить</option>
-            <option value="Оффлайн">Оффлайн</option>
-        </select>
-        <input type="color" id="colorPicker" value="#00ff00">
-        <button onclick="changeStatus()">Изменить статус</button>
-    </div>
-    <h3>Список пользователей:</h3>
-    <div id="groupList"></div>
+
+    <h3>Мой статус</h3>
+    <select id="status">
+        <option>Онлайн</option>
+        <option>Отошел</option>
+        <option>Не беспокоить</option>
+    </select>
+    <input type="color" id="color" value="#00ff00">
+    <button onclick="updateStatus()">Обновить</button>
+
+    <h3>Пользователи</h3>
+    <div id="list"></div>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        const URL = 'https://merchgizzyhobvdopml.supabase.co';
-        const KEY = 'sb_publishable_Thft5GubEakf8fyndIITtg_00iN05yh';
-        const supabase = createClient(URL, KEY);
+        const supabase = createClient(
+            'https://merchgizzyhobvdopml.supabase.co',
+            'sb_publishable_Thft5GubEakf8fyndIITtg_00iN05yh'
+        );
 
-        const ME_ID = '02d2fdbf-329b-480c-a424-37670b045f1b';
+        const MY_ID = '4bc569de-89f8-47d9-9b60-2d8bd2439122';
 
-        window.changeStatus = async () => {
-            const status = document.getElementById('statusSelect').value;
-            const color = document.getElementById('colorPicker').value;
-
-            const { error } = await supabase
+        window.updateStatus = async () => {
+            await supabase
                 .from('profiles')
-                .update({ status: status, color: color })
-                .eq('id', ME_ID);
-
-            if (error) {
-                alert("Ошибка! Проверьте RLS политики в Supabase.");
-                console.error(error);
-            } else {
-                fetchGroup();
-            }
+                .update({ 
+                    status: document.getElementById('status').value,
+                    color: document.getElementById('color').value 
+                })
+                .eq('id', MY_ID);
+            loadUsers();
         };
 
-        async function fetchGroup() {
-            const { data, error } = await supabase
+        async function loadUsers() {
+            const { data } = await supabase
                 .from('profiles')
                 .select('*')
-                .order('username', { ascending: true });
-
-            if (error) return console.error(error);
-
-            const list = document.getElementById('groupList');
+                .order('username');
+            
+            const list = document.getElementById('list');
             list.innerHTML = data.map(user => `
-                <div class="user-item">
-                    <div class="status-dot" style="background: ${user.color || '#ccc'}"></div>
-                    <div style="flex-grow: 1;">
-                        <strong>${user.username}</strong>
-                        <br>
-                        <small style="color: #666;">${user.status || 'Статус не задан'}</small>
-                    </div>
+                <div class="user">
+                    <div class="dot" style="background: ${user.color || '#ccc'}"></div>
+                    <strong>${user.username}</strong>
+                    <span>${user.status || 'Нет статуса'}</span>
                 </div>
             `).join('');
-
-            const me = data.find(u => u.id === ME_ID);
-            if (me) document.getElementById('myInfo').innerText = `Вы зашли как: ${me.username}`;
         }
 
-        fetchGroup();
-        setInterval(fetchGroup, 5000);
+        loadUsers();
+        setInterval(loadUsers, 3000);
     </script>
 </body>
 </html>
