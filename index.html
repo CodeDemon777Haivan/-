@@ -3,678 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой облачный проект - С авторизацией</title>
+    <title>Supabase Статусы</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
         }
-        
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 20px; 
-            background-color: #f4f4f9;
-            min-height: 100vh;
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 8px;
+            gap: 10px;
         }
-        
-        /* Контейнеры */
-        .container {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 500px;
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        #myInfo {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
             margin-bottom: 20px;
         }
-        
-        /* Авторизация */
-        .auth-container {
-            text-align: center;
-        }
-        
-        .user-info {
+        .controls {
+            margin-bottom: 20px;
             display: flex;
-            align-items: center;
-            gap: 15px;
-            background: #f8f9fa;
-            padding: 12px 15px;
-            border-radius: 10px;
+            gap: 10px;
         }
-        
-        .user-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid #f4b400;
-            object-fit: cover;
-        }
-        
-        .user-details {
-            flex: 1;
-        }
-        
-        .user-name {
-            font-weight: bold;
-            font-size: 16px;
-            color: #333;
-        }
-        
-        .user-email {
-            font-size: 12px;
-            color: #666;
-            margin-top: 3px;
-        }
-        
-        /* Форма */
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: inherit;
+        select, button {
+            padding: 8px 12px;
             font-size: 14px;
-            transition: border-color 0.2s;
         }
-        
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #f4b400;
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
         button {
-            width: 100%;
-            padding: 12px;
-            background: #f4b400;
-            border: none;
+            background: #007bff;
             color: white;
-            font-weight: bold;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.2s;
         }
-        
         button:hover {
-            background: #dfa400;
-            transform: translateY(-1px);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .logout-btn {
-            background: #dc3545;
-            width: auto;
-            padding: 8px 16px;
-        }
-        
-        .logout-btn:hover {
-            background: #c82333;
-        }
-        
-        .image-upload-btn {
-            background: #6c757d;
-            margin-bottom: 10px;
-        }
-        
-        .image-upload-btn:hover {
-            background: #5a6268;
-        }
-        
-        /* Посты */
-        .post { 
-            background: #fff; 
-            border: 1px solid #eaeaea; 
-            padding: 18px; 
-            margin-top: 15px; 
-            border-radius: 12px; 
-            width: 100%; 
-            max-width: 500px; 
-            position: relative;
-            transition: box-shadow 0.2s;
-        }
-        
-        .post:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .post-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        
-        .post-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        
-        .post-info {
-            flex: 1;
-        }
-        
-        .post-name {
-            font-weight: bold;
-            font-size: 14px;
-            color: #333;
-        }
-        
-        .post-email {
-            font-size: 11px;
-            color: #999;
-            margin-top: 2px;
-        }
-        
-        .post-text {
-            margin: 12px 0;
-            font-size: 14px;
-            color: #555;
-            line-height: 1.5;
-        }
-        
-        .post-image {
-            max-width: 100%;
-            max-height: 250px;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-        
-        .image-preview {
-            margin: 10px 0;
-        }
-        
-        .image-preview img {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: 8px;
-        }
-        
-        .like-btn { 
-            cursor: pointer; 
-            border: none; 
-            background: #ffebee; 
-            color: #c62828;
-            font-weight: bold;
-            padding: 8px 16px; 
-            border-radius: 20px; 
-            font-size: 14px; 
-            transition: 0.2s; 
-            border: 1px solid #ef9a9a;
-            width: auto;
-            margin-right: 10px;
-        }
-        
-        .like-btn:hover { 
-            background: #ffcdd2;
-            transform: scale(1.02);
-        }
-        
-        .delete-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            width: auto;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        
-        .delete-btn:hover {
-            background: #c82333;
-        }
-        
-        .time { 
-            font-size: 11px; 
-            color: #999; 
-            margin-left: auto;
-        }
-        
-        #feed { 
-            width: 100%; 
-            max-width: 500px; 
-        }
-        
-        .char-count {
-            font-size: 11px;
-            color: #999;
-            text-align: right;
-            margin-top: -10px;
-            margin-bottom: 10px;
-        }
-        
-        h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .empty-feed {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-            background: white;
-            border-radius: 12px;
-        }
-        
-        .login-btn {
-            background: #4285f4;
-            font-size: 16px;
-            padding: 14px;
-        }
-        
-        .login-btn:hover {
-            background: #357ae8;
+            background: #0056b3;
         }
     </style>
 </head>
 <body>
-
-<!-- Блок авторизации -->
-<div class="container">
-    <div id="loginContainer" class="auth-container">
-        <button id="loginBtn" class="login-btn">🔐 Войти через Google</button>
+    <div id="myInfo"></div>
+    <div class="controls">
+        <select id="statusSelect">
+            <option value="Онлайн">Онлайн</option>
+            <option value="Отошел">Отошел</option>
+            <option value="Не беспокоить">Не беспокоить</option>
+            <option value="Оффлайн">Оффлайн</option>
+        </select>
+        <input type="color" id="colorPicker" value="#00ff00">
+        <button onclick="changeStatus()">Изменить статус</button>
     </div>
-    <div id="userInfoContainer" style="display: none;">
-        <div class="user-info">
-            <img id="userPhoto" class="user-avatar" src="" alt="Avatar">
-            <div class="user-details">
-                <div class="user-name" id="userName"></div>
-                <div class="user-email" id="userEmail"></div>
-            </div>
-            <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
-        </div>
-    </div>
-</div>
+    <h3>Список пользователей:</h3>
+    <div id="groupList"></div>
 
-<!-- Форма отправки (видна только авторизованным) -->
-<div id="formContainer" class="container" style="display: none;">
-    <h3>📝 Создать новую запись</h3>
-    <input type="text" id="userName" placeholder="Ваше имя" readonly>
-    <input type="email" id="userEmail" placeholder="Ваш Email" readonly>
-    <textarea id="postContent" placeholder="Что у вас нового?" maxlength="500" rows="3"></textarea>
-    <div class="char-count"><span id="charCount">0</span>/500 символов</div>
-    <button id="imageUploadBtn" class="image-upload-btn">🖼️ Загрузить изображение</button>
-    <input type="file" id="imageInput" accept="image/*" style="display: none;">
-    <div id="imagePreview" class="image-preview"></div>
-    <button id="submitBtn">✏️ Опубликовать</button>
-</div>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-<!-- Лента записей -->
-<div id="feed"></div>
+        const URL = 'https://merchgizzyhobvdopml.supabase.co';
+        const KEY = 'sb_publishable_Thft5GubEakf8fyndIITtg_00iN05yh';
+        const supabase = createClient(URL, KEY);
 
-<script type="module">
-    // Импортируем модули Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { 
-        getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-        updateDoc, doc, increment, serverTimestamp, deleteDoc 
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-    import { 
-        getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import { 
-        getStorage, ref, uploadBytes, getDownloadURL 
-    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+        const ME_ID = '02d2fdbf-329b-480c-a424-37670b045f1b';
 
-    // Конфигурация Firebase (ваша)
-    const firebaseConfig = {
-        apiKey: "AIzaSyDtx23Cdrvf4TOU0BUTw2FvCk_rp_fRaXQ",
-        authDomain: "codedemon777haivan.firebaseapp.com",
-        projectId: "codedemon777haivan",
-        storageBucket: "codedemon777haivan.firebasestorage.app",
-        messagingSenderId: "314808708610",
-        appId: "1:314808708610:web:fe368ba3db5d301d86011b",
-        measurementId: "G-9HNP8CVNYC"
-    };
+        window.changeStatus = async () => {
+            const status = document.getElementById('statusSelect').value;
+            const color = document.getElementById('colorPicker').value;
 
-    // Инициализация
-    console.log("🚀 Инициализация Firebase...");
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const storage = getStorage(app);
-    const provider = new GoogleAuthProvider();
-    
-    console.log("✅ Firebase инициализирован, projectId:", app.options.projectId);
+            const { error } = await supabase
+                .from('profiles')
+                .update({ status: status, color: color })
+                .eq('id', ME_ID);
 
-    // DOM элементы
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const loginContainer = document.getElementById('loginContainer');
-    const userInfoContainer = document.getElementById('userInfoContainer');
-    const formContainer = document.getElementById('formContainer');
-    const userPhoto = document.getElementById('userPhoto');
-    const userName = document.getElementById('userName');
-    const userEmail = document.getElementById('userEmail');
-    const userNameInput = document.getElementById('userName');
-    const userEmailInput = document.getElementById('userEmail');
-    const postContent = document.getElementById('postContent');
-    const submitBtn = document.getElementById('submitBtn');
-    const imageUploadBtn = document.getElementById('imageUploadBtn');
-    const imageInput = document.getElementById('imageInput');
-    const imagePreview = document.getElementById('imagePreview');
-    const charCount = document.getElementById('charCount');
-    const feed = document.getElementById('feed');
-
-    let currentUser = null;
-    let currentImageUrl = null;
-
-    // Счетчик символов
-    postContent.addEventListener('input', () => {
-        charCount.textContent = postContent.value.length;
-    });
-
-    // Загрузка изображения
-    imageUploadBtn.addEventListener('click', () => {
-        if (!currentUser) {
-            alert('Пожалуйста, войдите в аккаунт');
-            return;
-        }
-        imageInput.click();
-    });
-
-    imageInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            alert('Пожалуйста, выберите изображение');
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Изображение не должно превышать 5MB');
-            return;
-        }
-
-        try {
-            imageUploadBtn.disabled = true;
-            imageUploadBtn.textContent = '⏳ Загрузка...';
-            
-            const storageRef = ref(storage, `posts/${Date.now()}_${file.name}`);
-            await uploadBytes(storageRef, file);
-            currentImageUrl = await getDownloadURL(storageRef);
-            
-            imagePreview.innerHTML = `<img src="${currentImageUrl}" alt="Preview">`;
-            imageUploadBtn.textContent = '✅ Изображение загружено';
-            imageUploadBtn.style.background = '#28a745';
-        } catch (error) {
-            console.error('Ошибка загрузки:', error);
-            alert('Ошибка при загрузке изображения');
-            imageUploadBtn.textContent = '🖼️ Загрузить изображение';
-        } finally {
-            imageUploadBtn.disabled = false;
-        }
-    });
-
-    // Вход через Google
-    loginBtn.onclick = async () => {
-        try {
-            console.log("Попытка входа через Google...");
-            await signInWithPopup(auth, provider);
-            console.log("Вход успешен!");
-        } catch (error) {
-            console.error('Ошибка входа:', error);
-            alert('Ошибка при входе: ' + error.message);
-        }
-    };
-
-    // Выход
-    logoutBtn.onclick = async () => {
-        try {
-            await signOut(auth);
-            currentImageUrl = null;
-            imagePreview.innerHTML = '';
-            imageUploadBtn.textContent = '🖼️ Загрузить изображение';
-            imageUploadBtn.style.background = '#6c757d';
-            postContent.value = '';
-            charCount.textContent = '0';
-            console.log("Выход выполнен");
-        } catch (error) {
-            console.error('Ошибка выхода:', error);
-        }
-    };
-
-    // Отслеживание состояния авторизации
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        
-        if (user) {
-            console.log("Пользователь авторизован:", user.email);
-            // Показываем интерфейс авторизованного пользователя
-            loginContainer.style.display = 'none';
-            userInfoContainer.style.display = 'block';
-            formContainer.style.display = 'block';
-            
-            userName.textContent = user.displayName || 'Пользователь';
-            userEmail.textContent = user.email || '';
-            userPhoto.src = user.photoURL || 'https://via.placeholder.com/50';
-            userNameInput.value = user.displayName || '';
-            userEmailInput.value = user.email || '';
-        } else {
-            console.log("Пользователь не авторизован");
-            // Показываем интерфейс неавторизованного пользователя
-            loginContainer.style.display = 'block';
-            userInfoContainer.style.display = 'none';
-            formContainer.style.display = 'none';
-            currentImageUrl = null;
-            imagePreview.innerHTML = '';
-            imageUploadBtn.textContent = '🖼️ Загрузить изображение';
-            imageUploadBtn.style.background = '#6c757d';
-            postContent.value = '';
-            charCount.textContent = '0';
-        }
-    });
-
-    // Отправка поста
-    submitBtn.onclick = async () => {
-        if (!currentUser) {
-            alert('Пожалуйста, войдите в аккаунт');
-            return;
-        }
-        
-        const content = postContent.value.trim();
-        if (!content) {
-            alert('Пожалуйста, введите текст записи');
-            return;
-        }
-        
-        try {
-            submitBtn.disabled = true;
-            submitBtn.textContent = '⏳ Публикация...';
-            
-            const postData = {
-                name: currentUser.displayName || 'Пользователь',
-                email: currentUser.email,
-                photo: currentUser.photoURL || '',
-                text: content,
-                likes: 0,
-                timestamp: serverTimestamp(),
-                userId: currentUser.uid
-            };
-            
-            if (currentImageUrl) {
-                postData.imageUrl = currentImageUrl;
-            }
-            
-            console.log("Отправка данных в Firebase...", postData);
-            await addDoc(collection(db, "requests"), postData);
-            
-            // Очистка формы
-            postContent.value = '';
-            currentImageUrl = null;
-            imagePreview.innerHTML = '';
-            imageUploadBtn.textContent = '🖼️ Загрузить изображение';
-            imageUploadBtn.style.background = '#6c757d';
-            charCount.textContent = '0';
-            
-            console.log("Запись успешно опубликована!");
-            alert('✅ Запись успешно опубликована!');
-        } catch (error) {
-            console.error('Ошибка публикации:', error);
-            if (error.message.includes('permission')) {
-                alert('❌ Ошибка прав доступа. Проверьте правила безопасности в Firebase Console.\n\nНужно установить:\nallow write: if request.auth != null;');
+            if (error) {
+                alert("Ошибка! Проверьте RLS политики в Supabase.");
+                console.error(error);
             } else {
-                alert('❌ Ошибка при публикации: ' + error.message);
+                fetchGroup();
             }
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = '✏️ Опубликовать';
-        }
-    };
+        };
 
-    // Функция лайка (глобальная для onclick)
-    window.processLike = async (id) => {
-        if (!currentUser) {
-            alert('Войдите в аккаунт, чтобы ставить лайки');
-            return;
-        }
-        
-        const docRef = doc(db, "requests", id);
-        try {
-            await updateDoc(docRef, { 
-                likes: increment(1) 
-            });
-            console.log("❤️ Лайк добавлен, документ:", id);
-        } catch (error) {
-            console.error("Ошибка при добавлении лайка:", error.message);
-            alert("Не удалось поставить лайк: " + error.message);
-        }
-    };
-    
-    // Функция удаления поста
-    window.deletePost = async (postId, userId) => {
-        if (!currentUser) {
-            alert('Войдите в аккаунт');
-            return;
-        }
-        
-        if (currentUser.uid !== userId) {
-            alert('Вы можете удалять только свои записи');
-            return;
-        }
-        
-        if (confirm('Вы уверены, что хотите удалить эту запись?')) {
-            try {
-                await deleteDoc(doc(db, "requests", postId));
-                console.log("🗑️ Запись удалена:", postId);
-                alert('Запись удалена');
-            } catch (error) {
-                console.error('Ошибка удаления:', error);
-                alert('Не удалось удалить запись');
-            }
-        }
-    };
+        async function fetchGroup() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .order('username', { ascending: true });
 
-    // Форматирование времени
-    function formatTime(timestamp) {
-        if (!timestamp) return 'только что';
-        
-        let date;
-        if (timestamp.toDate) {
-            date = timestamp.toDate();
-        } else if (timestamp.seconds) {
-            date = new Date(timestamp.seconds * 1000);
-        } else {
-            date = new Date(timestamp);
-        }
-        
-        const now = new Date();
-        const diff = now - date;
-        const minutes = Math.floor(diff / 60000);
-        const hours = Math.floor(diff / 3600000);
-        const days = Math.floor(diff / 86400000);
-        
-        if (minutes < 1) return 'только что';
-        if (minutes < 60) return `${minutes} мин назад`;
-        if (hours < 24) return `${hours} ч назад`;
-        if (days < 7) return `${days} д назад`;
-        return date.toLocaleDateString('ru-RU');
-    }
+            if (error) return console.error(error);
 
-    // Экранирование HTML
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // REAL-TIME синхронизация ленты
-    const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-        if (!feed) return;
-        
-        if (snapshot.empty) {
-            feed.innerHTML = '<div class="empty-feed">📭 Пока нет записей. Будьте первым!</div>';
-            return;
-        }
-        
-        feed.innerHTML = "";
-        
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const postId = doc.id;
-            const timeString = formatTime(data.timestamp);
-            
-            const postDiv = document.createElement('div');
-            postDiv.className = 'post';
-            
-            postDiv.innerHTML = `
-                <div class="post-header">
-                    <img class="post-avatar" src="${data.photo || 'https://via.placeholder.com/40'}" alt="Avatar" onerror="this.src='https://via.placeholder.com/40'">
-                    <div class="post-info">
-                        <div class="post-name">${escapeHtml(data.name || 'Пользователь')}</div>
-                        <div class="post-email">${escapeHtml(data.email || '')}</div>
+            const list = document.getElementById('groupList');
+            list.innerHTML = data.map(user => `
+                <div class="user-item">
+                    <div class="status-dot" style="background: ${user.color || '#ccc'}"></div>
+                    <div style="flex-grow: 1;">
+                        <strong>${user.username}</strong>
+                        <br>
+                        <small style="color: #666;">${user.status || 'Статус не задан'}</small>
                     </div>
-                    <div class="time">${timeString}</div>
                 </div>
-                <div class="post-text">${escapeHtml(data.text || '')}</div>
-                ${data.imageUrl ? `<img class="post-image" src="${data.imageUrl}" alt="Post image">` : ''}
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button class="like-btn" data-id="${postId}">❤️ ${data.likes || 0} лайков</button>
-                    ${currentUser && currentUser.uid === data.userId ? `
-                        <button class="like-btn delete-btn" onclick="deletePost('${postId}', '${data.userId}')">🗑️ Удалить</button>
-                    ` : ''}
-                </div>
-            `;
-            
-            const likeBtn = postDiv.querySelector('.like-btn');
-            if (likeBtn && !likeBtn.classList.contains('delete-btn')) {
-                likeBtn.onclick = () => window.processLike(postId);
-            }
-            
-            feed.appendChild(postDiv);
-        });
-        
-        console.log("📡 Посты обновлены, всего:", snapshot.size);
-    }, (error) => {
-        console.error("Ошибка синхронизации:", error);
-    });
-    
-    console.log("🎉 Приложение полностью загружено!");
-    console.log("🔒 Проверка безопасности: без авторизации нельзя отправить пост");
-</script>
+            `).join('');
+
+            const me = data.find(u => u.id === ME_ID);
+            if (me) document.getElementById('myInfo').innerText = `Вы зашли как: ${me.username}`;
+        }
+
+        fetchGroup();
+        setInterval(fetchGroup, 5000);
+    </script>
 </body>
 </html>
