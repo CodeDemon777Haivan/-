@@ -138,6 +138,47 @@
             background: #0056b3;
         }
 
+        /* Кнопка входа через Google */
+        .google-btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #444;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .google-btn:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
         /* Инфо */
         .my-info {
             background: #e8f4fd;
@@ -146,6 +187,11 @@
             margin-bottom: 20px;
             font-size: 14px;
             color: #0056b3;
+        }
+
+        /* Скрытый контент */
+        .hidden {
+            display: none;
         }
 
         /* Адаптив */
@@ -160,28 +206,43 @@
 </head>
 <body>
     <div class="container">
-        <!-- Карточка профиля -->
-        <div class="card">
-            <h2>👤 Мой профиль</h2>
-            <div class="my-info" id="myInfo">Загрузка...</div>
-            
-            <h3>Выберите статус:</h3>
-            <div class="status-buttons" id="statusButtons">
-                <button class="status-btn" data-status="Онлайн">🟢 Онлайн</button>
-                <button class="status-btn" data-status="Отошёл">☕ Отошёл</button>
-                <button class="status-btn" data-status="Не беспокоить">🔴 Не беспокоить</button>
-                <button class="status-btn" data-status="Встреча">📅 Встреча</button>
-                <button class="status-btn" data-status="Обед">🍜 Обед</button>
+        <!-- Блок входа -->
+        <div id="loginBlock" class="card">
+            <h2>🔐 Вход в систему</h2>
+            <button class="google-btn" onclick="signInWithGoogle()">
+                🚀 Войти через Google
+            </button>
+            <div style="font-size: 13px; color: #666; text-align: center; margin-top: 12px;">
+                Используйте свой Google аккаунт для входа
             </div>
-            
-            <button class="save-btn" onclick="updateStatus()">Сохранить статус</button>
         </div>
 
-        <!-- Карточка монитора группы -->
-        <div class="card">
-            <h2>👥 Монитор группы</h2>
-            <div class="user-list" id="groupList">
-                <div style="text-align: center; color: #999;">Загрузка...</div>
+        <!-- Основной контент (скрыт до входа) -->
+        <div id="mainContent" class="hidden">
+            <!-- Карточка профиля -->
+            <div class="card">
+                <h2>👤 Мой профиль</h2>
+                <div class="my-info" id="myInfo">Загрузка...</div>
+                
+                <h3>Выберите статус:</h3>
+                <div class="status-buttons" id="statusButtons">
+                    <button class="status-btn" data-status="Онлайн">🟢 Онлайн</button>
+                    <button class="status-btn" data-status="Отошёл">☕ Отошёл</button>
+                    <button class="status-btn" data-status="Не беспокоить">🔴 Не беспокоить</button>
+                    <button class="status-btn" data-status="Встреча">📅 Встреча</button>
+                    <button class="status-btn" data-status="Обед">🍜 Обед</button>
+                </div>
+                
+                <button class="save-btn" onclick="updateStatus()">Сохранить статус</button>
+                <button class="logout-btn" onclick="signOut()">Выйти из аккаунта</button>
+            </div>
+
+            <!-- Карточка монитора группы -->
+            <div class="card">
+                <h2>👥 Монитор группы</h2>
+                <div class="user-list" id="groupList">
+                    <div style="text-align: center; color: #999;">Загрузка...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -190,13 +251,13 @@
         // ========== ПОДСТАВЬТЕ СВОИ ДАННЫЕ ==========
         const SUPABASE_URL = 'https://qtgazbjettbxlgqllxnm.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_9EoTAUgvBlzPijh212ML3Q_a3gO9efn';
-        const MY_USER_ID = '02d2fdbf-329b-480c-a424-37670b045f1b'; // ВСТАВЬТЕ СВОЙ ID ИЗ SUPABASE
         // ============================================
 
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentSelectedStatus = 'Онлайн';
+        let currentUser = null;
 
         // Выбор статуса (подсветка кнопок)
         document.querySelectorAll('.status-btn').forEach(btn => {
@@ -206,16 +267,96 @@
                 currentSelectedStatus = btn.getAttribute('data-status');
             });
         });
-        // По умолчанию активен "Онлайн"
-        document.querySelector('.status-btn[data-status="Онлайн"]').classList.add('active');
+
+        // Функция входа через Google
+        window.signInWithGoogle = async () => {
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + window.location.pathname
+                    }
+                });
+                
+                if (error) {
+                    console.error('Ошибка входа:', error);
+                    alert('Ошибка входа: ' + error.message);
+                }
+                // Перенаправление произойдёт автоматически
+            } catch (err) {
+                alert('Ошибка: ' + err.message);
+            }
+        };
+
+        // Функция выхода
+        window.signOut = async () => {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('Ошибка выхода:', error);
+                } else {
+                    window.location.reload();
+                }
+            } catch (err) {
+                alert('Ошибка: ' + err.message);
+            }
+        };
+
+        // Функция создания/обновления профиля пользователя
+        async function createOrUpdateProfile(user) {
+            if (!user) return null;
+
+            // Проверяем, существует ли профиль
+            const { data: existingProfile, error: fetchError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (fetchError && fetchError.code !== 'PGRST116') {
+                console.error('Ошибка проверки профиля:', fetchError);
+                return null;
+            }
+
+            if (!existingProfile) {
+                // Создаём новый профиль
+                const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Пользователь';
+                const { data: newProfile, error: insertError } = await supabase
+                    .from('profiles')
+                    .insert([
+                        { 
+                            id: user.id, 
+                            username: userName,
+                            email: user.email,
+                            status: 'Онлайн',
+                            color: '#007bff'
+                        }
+                    ])
+                    .select()
+                    .single();
+
+                if (insertError) {
+                    console.error('Ошибка создания профиля:', insertError);
+                    return null;
+                }
+                return newProfile;
+            }
+
+            return existingProfile;
+        }
 
         // Функция обновления статуса
         window.updateStatus = async () => {
+            if (!currentUser) {
+                alert('Пожалуйста, войдите в систему');
+                return;
+            }
+
             try {
                 const { error } = await supabase
                     .from('profiles')
                     .update({ status: currentSelectedStatus })
-                    .eq('id', MY_USER_ID);
+                    .eq('id', currentUser.id);
 
                 if (error) {
                     console.error('Ошибка:', error);
@@ -223,11 +364,49 @@
                 } else {
                     alert('✅ Статус обновлён!');
                     loadGroup(); // Обновляем список
+                    loadMyInfo(); // Обновляем информацию о себе
                 }
             } catch (err) {
                 alert('Ошибка: ' + err.message);
             }
         };
+
+        // Загрузка информации о текущем пользователе
+        async function loadMyInfo() {
+            if (!currentUser) return;
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (error) {
+                console.error('Ошибка загрузки информации:', error);
+                document.getElementById('myInfo').innerHTML = `⚠️ Ошибка загрузки профиля`;
+                return;
+            }
+
+            if (data) {
+                document.getElementById('myInfo').innerHTML = `
+                    👋 Вы зашли как: <strong>${escapeHtml(data.username)}</strong><br>
+                    📧 ${escapeHtml(currentUser.email)}<br>
+                    📌 Текущий статус: ${escapeHtml(data.status || 'не задан')}
+                `;
+                
+                // Устанавливаем активную кнопку статуса
+                if (data.status) {
+                    document.querySelectorAll('.status-btn').forEach(btn => {
+                        if (btn.getAttribute('data-status') === data.status) {
+                            btn.classList.add('active');
+                            currentSelectedStatus = data.status;
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
+            }
+        }
 
         // Загрузка всех пользователей
         async function loadGroup() {
@@ -253,19 +432,44 @@
                     <div class="user-info">
                         <div class="status-dot" style="background: ${user.color || '#007bff'}"></div>
                         <span class="user-name">${escapeHtml(user.username || 'Без имени')}</span>
+                        ${user.email ? `<span style="font-size: 11px; color: #999;">(${escapeHtml(user.email)})</span>` : ''}
                     </div>
                     <span class="user-status">${escapeHtml(user.status || 'Статус не задан')}</span>
                 </div>
             `).join('');
 
             document.getElementById('groupList').innerHTML = listHtml;
+        }
 
-            // Показываем информацию о себе
-            const me = data.find(u => u.id === MY_USER_ID);
-            if (me) {
-                document.getElementById('myInfo').innerHTML = `👋 Вы зашли как: <strong>${escapeHtml(me.username)}</strong><br>📌 Текущий статус: ${escapeHtml(me.status || 'не задан')}`;
+        // Проверка сессии при загрузке
+        async function checkSession() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (error) {
+                console.error('Ошибка проверки сессии:', error);
+                return;
+            }
+
+            if (session && session.user) {
+                currentUser = session.user;
+                
+                // Создаём или обновляем профиль
+                await createOrUpdateProfile(currentUser);
+                
+                // Показываем основной контент, скрываем блок входа
+                document.getElementById('loginBlock').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                
+                // Загружаем данные
+                await loadMyInfo();
+                await loadGroup();
+                
+                // Запускаем автообновление
+                setInterval(loadGroup, 5000);
             } else {
-                document.getElementById('myInfo').innerHTML = `⚠️ Ваш ID (${MY_USER_ID}) не найден в таблице. Добавьте себя в Supabase.`;
+                // Показываем блок входа, скрываем основной контент
+                document.getElementById('loginBlock').classList.remove('hidden');
+                document.getElementById('mainContent').classList.add('hidden');
             }
         }
 
@@ -280,9 +484,17 @@
             });
         }
 
-        // Запускаем загрузку и обновляем каждые 5 секунд
-        loadGroup();
-        setInterval(loadGroup, 5000);
+        // Слушаем изменения состояния аутентификации
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                window.location.reload();
+            } else if (event === 'SIGNED_OUT') {
+                window.location.reload();
+            }
+        });
+
+        // Запускаем проверку сессии
+        checkSession();
     </script>
 </body>
 </html>
