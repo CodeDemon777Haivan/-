@@ -353,7 +353,6 @@
 </head>
 <body>
  
-<!-- LOGIN SCREEN -->
 <div id="loginScreen">
     <div class="login-box">
         <div class="login-logo">📊</div>
@@ -374,7 +373,6 @@
     </div>
 </div>
  
-<!-- APP SCREEN -->
 <div id="appScreen">
     <div class="header">
         <div class="header-left">
@@ -389,7 +387,6 @@
     </div>
  
     <div class="grid">
-        <!-- Мой статус -->
         <div class="card">
             <div class="card-title">Мой статус</div>
  
@@ -411,7 +408,6 @@
             <button class="btn-update" id="updateBtn">Обновить статус</button>
         </div>
  
-        <!-- Участники -->
         <div class="card">
             <div class="card-title">
                 Участники
@@ -427,203 +423,210 @@
 </div>
  
 <script>
-    // ===================== ВАШИ ДАННЫЕ SUPABASE =====================
-    const SUPABASE_URL = "https://zkgaabzztwrzktxezcoa.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZ2FhYnp6dHdyemt0eGV6Y29hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNzYzNzAsImV4cCI6MjA5Mjg1MjM3MH0.Yy8wA9X-M-fyff92Jlam-NJFFypHZtKrC0mYDNwqGKs";
-    // =================================================================
+    // Инициализация обернута в проверку, чтобы избежать дублирования в памяти браузера
+    if (typeof window.supabaseClientInitialized === 'undefined') {
+        window.supabaseClientInitialized = true;
+
+        // ===================== ВАШИ ДАННЫЕ SUPABASE =====================
+        const SUPABASE_URL = "https://zkgaabzztwrzktxezcoa.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZ2FhYnp6dHdyemt0eGV6Y29hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNzYzNzAsImV4cCI6MjA5Mjg1MjM3MH0.Yy8wA9X-M-fyff92Jlam-NJFFypHZtKrC0mYDNwqGKs";
+        // =================================================================
  
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
  
-    let currentUser = null;
-    let selectedStatus = "online";
-    let realtimeChannel = null;
+        let currentUser = null;
+        let selectedStatus = "online";
+        let realtimeChannel = null;
  
-    // DOM
-    const loginScreen = document.getElementById("loginScreen");
-    const appScreen   = document.getElementById("appScreen");
-    const loginBtn    = document.getElementById("loginBtn");
-    const logoutBtn   = document.getElementById("logoutBtn");
-    const updateBtn   = document.getElementById("updateBtn");
-    const userList    = document.getElementById("userList");
-    const myAvatar    = document.getElementById("myAvatar");
-    const myName      = document.getElementById("myName");
+        // DOM
+        const loginScreen = document.getElementById("loginScreen");
+        const appScreen   = document.getElementById("appScreen");
+        const loginBtn    = document.getElementById("loginBtn");
+        const logoutBtn   = document.getElementById("logoutBtn");
+        const updateBtn   = document.getElementById("updateBtn");
+        const userList    = document.getElementById("userList");
+        const myAvatar    = document.getElementById("myAvatar");
+        const myName      = document.getElementById("myName");
  
-    // ---- Google OAuth ----
-    loginBtn.addEventListener("click", async () => {
-        loginBtn.textContent = "Перенаправление…";
-        loginBtn.disabled = true;
+        // ---- Google OAuth ----
+        loginBtn.addEventListener("click", async () => {
+            loginBtn.textContent = "Перенаправление…";
+            loginBtn.disabled = true;
  
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: "google",
-            options: {
-                redirectTo: window.location.href
+            try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                        redirectTo: window.location.href
+                    }
+                });
+ 
+                if (error) throw error;
+            } catch (err) {
+                alert("Ошибка инициализации OAuth: " + (err.message || err));
+                loginBtn.textContent = "Войти через Google";
+                loginBtn.disabled = false;
             }
         });
  
-        if (error) {
-            alert("Ошибка входа: " + error.message);
-            loginBtn.textContent = "Войти через Google";
-            loginBtn.disabled = false;
-        }
-    });
- 
-    logoutBtn.addEventListener("click", async () => {
-        await supabase.auth.signOut();
-        showLogin();
-    });
- 
-    // ---- Status selector ----
-    document.querySelectorAll(".status-opt").forEach(el => {
-        el.addEventListener("click", () => {
-            document.querySelectorAll(".status-opt").forEach(e => e.classList.remove("selected"));
-            el.classList.add("selected");
-            selectedStatus = el.dataset.status;
+        logoutBtn.addEventListener("click", async () => {
+            await supabase.auth.signOut();
+            showLogin();
         });
-    });
  
-    // ---- Update status ----
-    updateBtn.addEventListener("click", async () => {
-        if (!currentUser) return;
-        updateBtn.disabled = true;
-        updateBtn.textContent = "Сохранение…";
+        // ---- Status selector ----
+        document.querySelectorAll(".status-opt").forEach(el => {
+            el.addEventListener("click", () => {
+                document.querySelectorAll(".status-opt").forEach(e => e.classList.remove("selected"));
+                el.classList.add("selected");
+                selectedStatus = el.dataset.status;
+            });
+        });
  
-        const { error } = await supabase
-            .from("profiles")
-            .upsert({ id: currentUser.id, status: selectedStatus }, { onConflict: "id" });
+        // ---- Update status ----
+        updateBtn.addEventListener("click", async () => {
+            if (!currentUser) return;
+            updateBtn.disabled = true;
+            updateBtn.textContent = "Сохранение…";
  
-        if (error) {
-            alert("Ошибка: " + error.message);
+            const { error } = await supabase
+                .from("profiles")
+                .upsert({ id: currentUser.id, status: selectedStatus }, { onConflict: "id" });
+ 
+            if (error) {
+                alert("Ошибка обновления статуса: " + error.message);
+            }
+ 
+            updateBtn.disabled = false;
+            updateBtn.textContent = "Обновить статус";
+            await refreshUsers();
+        });
+ 
+        // ---- Render users ----
+        const STATUS_META = {
+            online:  { label: "Онлайн",  cls: "dot-online"  },
+            away:    { label: "Отошёл",  cls: "dot-away"    },
+            busy:    { label: "Занят",   cls: "dot-busy"    },
+            offline: { label: "Офлайн",  cls: "dot-offline" },
+        };
+ 
+        function initials(name) {
+            if (!name) return "?";
+            return name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
         }
  
-        updateBtn.disabled = false;
-        updateBtn.textContent = "Обновить статус";
-        await refreshUsers();
-    });
- 
-    // ---- Render users ----
-    const STATUS_META = {
-        online:  { label: "Онлайн",  cls: "dot-online"  },
-        away:    { label: "Отошёл",  cls: "dot-away"    },
-        busy:    { label: "Занят",   cls: "dot-busy"    },
-        offline: { label: "Офлайн", cls: "dot-offline" },
-    };
- 
-    function initials(name) {
-        if (!name) return "?";
-        return name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
-    }
- 
-    function escapeHtml(s) {
-        return (s || "").replace(/[&<>]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
-    }
- 
-    function renderUsers(users) {
-        if (!users || users.length === 0) {
-            userList.innerHTML = '<div class="empty-state">Нет участников.<br>Убедитесь что таблица profiles создана.</div>';
-            return;
+        function escapeHtml(s) {
+            return (s || "").replace(/[&<>]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
         }
  
-        userList.innerHTML = users.map(u => {
-            const isMe = currentUser && u.id === currentUser.id;
-            const st   = STATUS_META[u.status] || STATUS_META["offline"];
-            const name = escapeHtml(u.username || u.email || "Без имени");
-            const av   = u.avatar_url
-                ? `<img src="${escapeHtml(u.avatar_url)}" alt="">`
-                : initials(u.username || u.email);
+        function renderUsers(users) {
+            if (!users || users.length === 0) {
+                userList.innerHTML = '<div class="empty-state">Нет участников.<br>Убедитесь что таблица profiles создана.</div>';
+                return;
+            }
  
-            return `
-                <div class="user-item${isMe ? " me" : ""}">
-                    <div class="user-av">${av}</div>
-                    <div class="user-info">
-                        <div class="user-name${isMe ? " user-name-me" : ""}">${name}${isMe ? " · Вы" : ""}</div>
-                        <div class="status-label">
-                            <span class="dot ${st.cls}"></span>
-                            ${st.label}
+            userList.innerHTML = users.map(u => {
+                const isMe = currentUser && u.id === currentUser.id;
+                const st   = STATUS_META[u.status] || STATUS_META["offline"];
+                const name = escapeHtml(u.username || u.email || "Без имени");
+                const av   = u.avatar_url
+                    ? `<img src="${escapeHtml(u.avatar_url)}" alt="">`
+                    : initials(u.username || u.email);
+ 
+                return `
+                    <div class="user-item${isMe ? " me" : ""}">
+                        <div class="user-av">${av}</div>
+                        <div class="user-info">
+                            <div class="user-name${isMe ? " user-name-me" : ""}">${name}${isMe ? " · Вы" : ""}</div>
+                            <div class="status-label">
+                                <span class="dot ${st.cls}"></span>
+                                ${st.label}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-        }).join("");
-    }
- 
-    async function refreshUsers() {
-        const { data, error } = await supabase
-            .from("profiles")
-            .select("id, username, email, status, avatar_url")
-            .order("username", { ascending: true });
- 
-        if (error) {
-            userList.innerHTML = `<div class="empty-state" style="color:#e05050">Ошибка: ${error.message}</div>`;
-            return;
+                `;
+            }).join("");
         }
-        renderUsers(data || []);
  
-        // sync my status selector
-        if (currentUser) {
-            const me = (data || []).find(u => u.id === currentUser.id);
-            if (me && me.status) {
-                document.querySelectorAll(".status-opt").forEach(el => {
-                    el.classList.toggle("selected", el.dataset.status === me.status);
-                });
-                selectedStatus = me.status;
+        async function refreshUsers() {
+            const { data, error } = await supabase
+                .from("profiles")
+                .select("id, username, email, status, avatar_url")
+                .order("username", { ascending: true });
+ 
+            if (error) {
+                userList.innerHTML = `<div class="empty-state" style="color:#e05050">Ошибка: ${error.message}</div>`;
+                return;
+            }
+            renderUsers(data || []);
+ 
+            // sync my status selector
+            if (currentUser) {
+                const me = (data || []).find(u => u.id === currentUser.id);
+                if (me && me.status) {
+                    document.querySelectorAll(".status-opt").forEach(el => {
+                        el.classList.toggle("selected", el.dataset.status === me.status);
+                    });
+                    selectedStatus = me.status;
+                }
             }
         }
-    }
  
-    // ---- Realtime ----
-    async function setupRealtime() {
-        if (realtimeChannel) await realtimeChannel.unsubscribe();
-        realtimeChannel = supabase
-            .channel("profiles-realtime")
-            .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
-                refreshUsers();
-            })
-            .subscribe();
-    }
- 
-    // ---- UI helpers ----
-    function showLogin() {
-        loginScreen.style.display = "flex";
-        appScreen.style.display = "none";
-        currentUser = null;
-    }
- 
-    async function showApp(user) {
-        currentUser = user;
-        loginScreen.style.display = "none";
-        appScreen.style.display = "block";
- 
-        // Set header avatar + name
-        const meta = user.user_metadata || {};
-        const name = meta.full_name || meta.name || user.email || "Пользователь";
-        myName.textContent = name.split(" ")[0];
- 
-        if (meta.avatar_url || meta.picture) {
-            myAvatar.innerHTML = `<img src="${meta.avatar_url || meta.picture}" alt="">`;
-        } else {
-            myAvatar.textContent = initials(name);
+        // ---- Realtime ----
+        async function setupRealtime() {
+            if (realtimeChannel) await realtimeChannel.unsubscribe();
+            realtimeChannel = supabase
+                .channel("profiles-realtime")
+                .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
+                    refreshUsers();
+                })
+                .subscribe();
         }
  
-        // Upsert profile on login
-        await supabase.from("profiles").upsert({
-            id: user.id,
-            username: name,
-            email: user.email,
-            avatar_url: meta.avatar_url || meta.picture || null,
-        }, { onConflict: "id", ignoreDuplicates: false });
- 
-        await refreshUsers();
-        await setupRealtime();
-    }
- 
-    // ---- Auth state ----
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        if (session && session.user) {
-            await showApp(session.user);
-        } else {
-            showLogin();
+        // ---- UI helpers ----
+        function showLogin() {
+            loginScreen.style.display = "flex";
+            appScreen.style.display = "none";
+            currentUser = null;
         }
-    });
+ 
+        async function showApp(user) {
+            currentUser = user;
+            loginScreen.style.display = "none";
+            appScreen.style.display = "block";
+ 
+            // Set header avatar + name
+            const meta = user.user_metadata || {};
+            const name = meta.full_name || meta.name || user.email || "Пользователь";
+            myName.textContent = name.split(" ")[0];
+ 
+            if (meta.avatar_url || meta.picture) {
+                myAvatar.innerHTML = `<img src="${meta.avatar_url || meta.picture}" alt="">`;
+            } else {
+                myAvatar.textContent = initials(name);
+            }
+ 
+            // Upsert profile on login
+            await supabase.from("profiles").upsert({
+                id: user.id,
+                username: name,
+                email: user.email,
+                avatar_url: meta.avatar_url || meta.picture || null,
+            }, { onConflict: "id", ignoreDuplicates: false });
+ 
+            await refreshUsers();
+            await setupRealtime();
+        }
+ 
+        // ---- Auth state ----
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session && session.user) {
+                await showApp(session.user);
+            } else {
+                showLogin();
+            }
+        });
+    }
 </script>
 </body>
 </html>
