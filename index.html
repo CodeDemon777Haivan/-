@@ -2,447 +2,628 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Монитор статусов | Supabase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Монитор статусов</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600&family=Geist:wght@300;400;500;600&display=swap');
+ 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+ 
         body {
-            background: #eef2f5;
-            padding: 30px 20px;
+            font-family: 'Geist', system-ui, sans-serif;
+            background: #0f0f10;
+            color: #e8e8e4;
+            min-height: 100vh;
         }
-        .wrapper {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        h2 {
-            font-size: 20px;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #3b82f6;
-            display: inline-block;
-        }
-        .flex {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-        .panel {
-            flex: 1;
-            min-width: 260px;
-        }
-        select, input, button {
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 15px;
-            border: 1px solid #ccc;
-        }
-        select {
-            width: 100%;
-            margin: 10px 0;
-            background: white;
-        }
-        button {
-            background: #1e293b;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-            width: 100%;
-        }
-        button:hover {
-            background: #0f172a;
-        }
-        .user-list {
+ 
+        /* ===== LOGIN SCREEN ===== */
+        #loginScreen {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+ 
+        .login-box {
+            background: #18181b;
+            border: 1px solid #2a2a2e;
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+ 
+        .login-logo {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+ 
+        .login-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #f0f0ec;
+            margin-bottom: 6px;
+        }
+ 
+        .login-sub {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 36px;
+            line-height: 1.5;
+        }
+ 
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 12px;
-            max-height: 500px;
-            overflow-y: auto;
+            width: 100%;
+            padding: 14px 20px;
+            background: #fff;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Geist', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
         }
-        .user-item {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 14px 18px;
+ 
+        .btn-google:hover { background: #f0f0f0; }
+        .btn-google:active { transform: scale(0.98); }
+ 
+        .btn-google svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+ 
+        .login-note {
+            font-size: 12px;
+            color: #555;
+            margin-top: 20px;
+        }
+ 
+        /* ===== APP SCREEN ===== */
+        #appScreen {
+            display: none;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+ 
+        .header {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
+            margin-bottom: 28px;
             flex-wrap: wrap;
-            gap: 10px;
-            border: 1px solid #e2e8f0;
+            gap: 14px;
         }
-        .user-name {
-            font-weight: 700;
-            font-size: 16px;
+ 
+        .header-left h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #f0f0ec;
         }
-        .status-badge {
+ 
+        .header-left p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
+        }
+ 
+        .user-pill {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: white;
-            padding: 5px 14px;
+            gap: 10px;
+            background: #18181b;
+            border: 1px solid #2a2a2e;
             border-radius: 40px;
+            padding: 8px 16px 8px 8px;
+        }
+ 
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            overflow: hidden;
+        }
+ 
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+ 
+        .user-pill-name {
             font-size: 14px;
             font-weight: 500;
+            color: #d0d0cc;
         }
+ 
+        .btn-logout {
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-family: 'Geist', sans-serif;
+            transition: color 0.15s, background 0.15s;
+        }
+ 
+        .btn-logout:hover { color: #e05050; background: #2a1818; }
+ 
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 20px;
+        }
+ 
+        @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+ 
+        .card {
+            background: #18181b;
+            border: 1px solid #2a2a2e;
+            border-radius: 18px;
+            padding: 24px;
+        }
+ 
+        .card-title {
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+ 
+        /* Status selector */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+ 
+        .status-opt {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #2a2a2e;
+            cursor: pointer;
+            background: #111113;
+            transition: border-color 0.15s, background 0.15s;
+            font-size: 14px;
+            color: #a0a09c;
+        }
+ 
+        .status-opt:hover { border-color: #3a3a3e; background: #1e1e22; }
+ 
+        .status-opt.selected {
+            border-color: #3b82f6;
+            background: #0d1e3a;
+            color: #e0e8ff;
+        }
+ 
         .dot {
             width: 10px;
             height: 10px;
-            border-radius: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
-        .online { background: #22c55e; }
-        .offline { background: #94a3b8; }
-        .away { background: #f59e0b; }
-        .busy { background: #ef4444; }
-        .note {
-            background: #f1f5f9;
-            padding: 12px;
-            border-radius: 14px;
-            font-size: 13px;
-            margin-top: 16px;
-            color: #334155;
-        }
-        .user-id-box {
-            font-family: monospace;
-            font-size: 11px;
-            background: #f1f5f9;
-            padding: 8px;
+ 
+        .dot-online  { background: #22c55e; box-shadow: 0 0 6px #22c55e88; }
+        .dot-away    { background: #f59e0b; box-shadow: 0 0 6px #f59e0b88; }
+        .dot-busy    { background: #ef4444; box-shadow: 0 0 6px #ef444488; }
+        .dot-offline { background: #444; }
+ 
+        .btn-update {
+            width: 100%;
+            padding: 13px;
+            background: #3b82f6;
+            color: white;
+            border: none;
             border-radius: 12px;
-            word-break: break-all;
-            margin-top: 12px;
+            font-family: 'Geist', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
         }
-        .flex-row {
+ 
+        .btn-update:hover { background: #2563eb; }
+        .btn-update:active { transform: scale(0.98); }
+        .btn-update:disabled { background: #222; color: #555; cursor: not-allowed; }
+ 
+        /* User list */
+        .user-list {
             display: flex;
-            gap: 8px;
-            margin-top: 8px;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 480px;
+            overflow-y: auto;
         }
-        .flex-row input {
-            flex: 1;
+ 
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: #111113;
+            border: 1px solid #2a2a2e;
+            border-radius: 14px;
+            transition: border-color 0.15s;
         }
-        .flex-row button {
-            width: auto;
-            padding: 10px 16px;
+ 
+        .user-item.me {
+            border-color: #1e3a70;
+            background: #0a1628;
         }
-        .badge {
-            background: #d9f99d;
+ 
+        .user-av {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #2a2a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+ 
+        .user-av img { width: 100%; height: 100%; object-fit: cover; }
+ 
+        .user-info { flex: 1; min-width: 0; }
+ 
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #e0e0dc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+ 
+        .user-name-me { color: #93bbff; }
+ 
+        .status-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-size: 12px;
-            padding: 2px 10px;
-            border-radius: 30px;
-            margin-left: 12px;
+            color: #666;
+            margin-top: 2px;
         }
-        hr {
-            margin: 16px 0;
+ 
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #22c55e;
+            margin-left: 10px;
         }
+ 
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 1.8s infinite;
+        }
+ 
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+ 
+        .empty-state {
+            padding: 30px;
+            text-align: center;
+            color: #444;
+            font-size: 14px;
+        }
+ 
+        /* Scrollbar */
+        .user-list::-webkit-scrollbar { width: 4px; }
+        .user-list::-webkit-scrollbar-track { background: transparent; }
+        .user-list::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
     </style>
 </head>
 <body>
-<div class="wrapper">
-    <div class="card">
-        <h1>📊 Монитор статусов</h1>
-        <p>Живая синхронизация через Supabase Realtime</p>
+ 
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+    <div class="login-box">
+        <div class="login-logo">📊</div>
+        <div class="login-title">Монитор статусов</div>
+        <div class="login-sub">Войдите, чтобы видеть и менять<br>статус в реальном времени</div>
+ 
+        <button class="btn-google" id="loginBtn">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Войти через Google
+        </button>
+ 
+        <div class="login-note">Мы используем Supabase Auth — ваши данные в безопасности</div>
     </div>
-
-    <div class="flex">
-        <!-- ЛЕВАЯ ПАНЕЛЬ: мой статус -->
-        <div class="panel card">
-            <h2>👤 Мой статус</h2>
-            <label>Выберите статус:</label>
-            <select id="statusSelect">
-                <option value="online">🟢 Онлайн</option>
-                <option value="offline">⚪ Офлайн</option>
-                <option value="away">🌙 Отошёл</option>
-                <option value="busy">🔴 Занят</option>
-            </select>
-            <button id="updateBtn">✏️ Обновить статус</button>
-
-            <hr>
-            <label><strong>🔑 Ваш UUID из Supabase</strong></label>
-            <div class="flex-row">
-                <input type="text" id="userIdInput" placeholder="вставьте id из таблицы profiles">
-                <button id="saveIdBtn">Привязать</button>
-            </div>
-            <div id="userIdStatus" class="user-id-box">⚡ UUID не задан</div>
-            <div class="note">
-                📌 Инструкция:<br>
-                1. В Supabase → Table Editor → таблица profiles<br>
-                2. Скопируйте ваш id (первая колонка)<br>
-                3. Вставьте выше и нажмите "Привязать"<br>
-                4. После этого сможете менять статус
-            </div>
+</div>
+ 
+<!-- APP SCREEN -->
+<div id="appScreen">
+    <div class="header">
+        <div class="header-left">
+            <h1>Монитор статусов</h1>
+            <p>Живая синхронизация · Supabase Realtime</p>
         </div>
-
-        <!-- ПРАВАЯ ПАНЕЛЬ: все участники -->
-        <div class="panel card">
-            <h2>🌍 Участники <span id="liveBadge" class="badge">realtime</span></h2>
-            <div id="usersContainer" class="user-list">
-                <div style="padding: 20px; text-align: center;">Загрузка...</div>
+        <div class="user-pill">
+            <div class="avatar" id="myAvatar">?</div>
+            <span class="user-pill-name" id="myName">…</span>
+            <button class="btn-logout" id="logoutBtn">Выйти</button>
+        </div>
+    </div>
+ 
+    <div class="grid">
+        <!-- Мой статус -->
+        <div class="card">
+            <div class="card-title">Мой статус</div>
+ 
+            <div class="status-grid">
+                <div class="status-opt selected" data-status="online">
+                    <span class="dot dot-online"></span> Онлайн
+                </div>
+                <div class="status-opt" data-status="away">
+                    <span class="dot dot-away"></span> Отошёл
+                </div>
+                <div class="status-opt" data-status="busy">
+                    <span class="dot dot-busy"></span> Занят
+                </div>
+                <div class="status-opt" data-status="offline">
+                    <span class="dot dot-offline"></span> Офлайн
+                </div>
+            </div>
+ 
+            <button class="btn-update" id="updateBtn">Обновить статус</button>
+        </div>
+ 
+        <!-- Участники -->
+        <div class="card">
+            <div class="card-title">
+                Участники
+                <span class="live-badge">
+                    <span class="live-dot"></span>realtime
+                </span>
+            </div>
+            <div class="user-list" id="userList">
+                <div class="empty-state">Загрузка…</div>
             </div>
         </div>
     </div>
 </div>
-
+ 
 <script>
     // ===================== ВАШИ ДАННЫЕ SUPABASE =====================
-    // ⚠️ ЗАМЕНИТЕ НА СВОИ ЗНАЧЕНИЯ ИЗ ПРОЕКТА SUPABASE ⚠️
-    const SUPABASE_URL = "https://zkgaabzztwrzktxezcoa.supabase.co";      // ← ВСТАВЬТЕ URL
-    const SUPABASE_ANON_KEY = "sb_publishable_NTuQaqKfqZNH5KpQOqhEuw_K1FhJ1eI";                  // ← ВСТАВЬТЕ KEY
+    const SUPABASE_URL = "https://zkgaabzztwrzktxezcoa.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_NTuQaqKfqZNH5KpQOqhEuw_K1FhJ1eI";
     // =================================================================
-
-    // Инициализация клиента
+ 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // Глобальные переменные
-    let currentUserId = localStorage.getItem("monitor_user_id") || null;
+ 
+    let currentUser = null;
+    let selectedStatus = "online";
     let realtimeChannel = null;
-
-    // DOM элементы
-    const statusSelect = document.getElementById("statusSelect");
-    const updateBtn = document.getElementById("updateBtn");
-    const userIdInput = document.getElementById("userIdInput");
-    const saveIdBtn = document.getElementById("saveIdBtn");
-    const userIdStatus = document.getElementById("userIdStatus");
-    const usersContainer = document.getElementById("usersContainer");
-
-    // --- Отображение списка пользователей ---
+ 
+    // DOM
+    const loginScreen = document.getElementById("loginScreen");
+    const appScreen   = document.getElementById("appScreen");
+    const loginBtn    = document.getElementById("loginBtn");
+    const logoutBtn   = document.getElementById("logoutBtn");
+    const updateBtn   = document.getElementById("updateBtn");
+    const userList    = document.getElementById("userList");
+    const myAvatar    = document.getElementById("myAvatar");
+    const myName      = document.getElementById("myName");
+ 
+    // ---- Google OAuth ----
+    loginBtn.addEventListener("click", async () => {
+        loginBtn.textContent = "Перенаправление…";
+        loginBtn.disabled = true;
+ 
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                redirectTo: window.location.href
+            }
+        });
+ 
+        if (error) {
+            alert("Ошибка входа: " + error.message);
+            loginBtn.textContent = "Войти через Google";
+            loginBtn.disabled = false;
+        }
+    });
+ 
+    logoutBtn.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        showLogin();
+    });
+ 
+    // ---- Status selector ----
+    document.querySelectorAll(".status-opt").forEach(el => {
+        el.addEventListener("click", () => {
+            document.querySelectorAll(".status-opt").forEach(e => e.classList.remove("selected"));
+            el.classList.add("selected");
+            selectedStatus = el.dataset.status;
+        });
+    });
+ 
+    // ---- Update status ----
+    updateBtn.addEventListener("click", async () => {
+        if (!currentUser) return;
+        updateBtn.disabled = true;
+        updateBtn.textContent = "Сохранение…";
+ 
+        const { error } = await supabase
+            .from("profiles")
+            .upsert({ id: currentUser.id, status: selectedStatus }, { onConflict: "id" });
+ 
+        if (error) {
+            alert("Ошибка: " + error.message);
+        }
+ 
+        updateBtn.disabled = false;
+        updateBtn.textContent = "Обновить статус";
+        await refreshUsers();
+    });
+ 
+    // ---- Render users ----
+    const STATUS_META = {
+        online:  { label: "Онлайн",  cls: "dot-online"  },
+        away:    { label: "Отошёл",  cls: "dot-away"    },
+        busy:    { label: "Занят",   cls: "dot-busy"    },
+        offline: { label: "Офлайн", cls: "dot-offline" },
+    };
+ 
+    function initials(name) {
+        if (!name) return "?";
+        return name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+    }
+ 
+    function escapeHtml(s) {
+        return (s || "").replace(/[&<>]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+    }
+ 
     function renderUsers(users) {
         if (!users || users.length === 0) {
-            usersContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: gray;">👀 Нет пользователей. Добавьте записи в таблицу profiles через Table Editor.</div>';
+            userList.innerHTML = '<div class="empty-state">Нет участников.<br>Убедитесь что таблица profiles создана.</div>';
             return;
         }
-
-        let html = "";
-        for (let user of users) {
-            const statusValue = user.status || "offline";
-            let statusText = "";
-            let dotClass = "";
-            if (statusValue === "online") { statusText = "Онлайн"; dotClass = "online"; }
-            else if (statusValue === "offline") { statusText = "Офлайн"; dotClass = "offline"; }
-            else if (statusValue === "away") { statusText = "Отошёл"; dotClass = "away"; }
-            else if (statusValue === "busy") { statusText = "Занят"; dotClass = "busy"; }
-            else { statusText = "Онлайн"; dotClass = "online"; }
-
-            const isMe = (currentUserId && user.id === currentUserId);
-            const nameDisplay = user.username || "Без имени";
-            
-            html += `
-                <div class="user-item" style="${isMe ? 'background: #e6f0ff; border-left: 4px solid #3b82f6;' : ''}">
-                    <div>
-                        <div class="user-name">${escapeHtml(nameDisplay)} ${isMe ? '(Вы)' : ''}</div>
-                        <div style="font-size: 11px; color: #6c757d;">${user.id ? user.id.slice(0, 8) + '…' : '—'}</div>
-                    </div>
-                    <div class="status-badge">
-                        <span class="dot ${dotClass}"></span>
-                        <span>${statusText}</span>
+ 
+        userList.innerHTML = users.map(u => {
+            const isMe = currentUser && u.id === currentUser.id;
+            const st   = STATUS_META[u.status] || STATUS_META["offline"];
+            const name = escapeHtml(u.username || u.email || "Без имени");
+            const av   = u.avatar_url
+                ? `<img src="${escapeHtml(u.avatar_url)}" alt="">`
+                : initials(u.username || u.email);
+ 
+            return `
+                <div class="user-item${isMe ? " me" : ""}">
+                    <div class="user-av">${av}</div>
+                    <div class="user-info">
+                        <div class="user-name${isMe ? " user-name-me" : ""}">${name}${isMe ? " · Вы" : ""}</div>
+                        <div class="status-label">
+                            <span class="dot ${st.cls}"></span>
+                            ${st.label}
+                        </div>
                     </div>
                 </div>
             `;
-        }
-        usersContainer.innerHTML = html;
+        }).join("");
     }
-
-    function escapeHtml(str) {
-        if (!str) return "";
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === "&") return "&amp;";
-            if (m === "<") return "&lt;";
-            if (m === ">") return "&gt;";
-            return m;
-        });
-    }
-
-    // --- Загрузка всех профилей из таблицы ---
-    async function loadAllUsers() {
-        try {
-            const { data, error } = await supabase
-                .from("profiles")
-                .select("id, username, status")
-                .order("username", { ascending: true });
-            
-            if (error) {
-                console.error("Ошибка SELECT:", error);
-                if (error.message.includes("permission denied")) {
-                    usersContainer.innerHTML = '<div style="padding:20px; color:red;">⛔ Нет прав на чтение. Проверьте RLS политики: разрешите SELECT для всех (USING = true).</div>';
-                } else {
-                    usersContainer.innerHTML = `<div style="padding:20px;">❌ Ошибка: ${error.message}</div>`;
-                }
-                return [];
-            }
-            return data || [];
-        } catch(e) {
-            console.error(e);
-            return [];
-        }
-    }
-
-    // --- Обновить статус текущего пользователя ---
-    async function updateStatus(newStatus) {
-        if (!currentUserId) {
-            alert("❌ Сначала привяжите ваш UUID (вставьте id из таблицы profiles)");
-            return false;
-        }
-
-        updateBtn.disabled = true;
-        updateBtn.textContent = "⏳ Сохранение...";
-        
-        try {
-            const { error } = await supabase
-                .from("profiles")
-                .update({ status: newStatus })
-                .eq("id", currentUserId);
-            
-            if (error) {
-                console.error("UPDATE error:", error);
-                if (error.message.includes("permission denied")) {
-                    alert("❌ Нет прав на обновление. Проверьте RLS: для UPDATE нужно разрешить USING=true и WITH CHECK=true");
-                } else {
-                    alert("Ошибка: " + error.message);
-                }
-                return false;
-            }
-            
-            // Успешно
-            return true;
-        } catch(err) {
-            alert("Исключение: " + err.message);
-            return false;
-        } finally {
-            updateBtn.disabled = false;
-            updateBtn.textContent = "✏️ Обновить статус";
-        }
-    }
-
-    // --- Синхронизация select со статусом из БД ---
-    async function syncMyStatusFromDB() {
-        if (!currentUserId) return;
+ 
+    async function refreshUsers() {
         const { data, error } = await supabase
             .from("profiles")
-            .select("status")
-            .eq("id", currentUserId)
-            .maybeSingle();
-        
-        if (!error && data && data.status) {
-            if (statusSelect.querySelector(`option[value="${data.status}"]`)) {
-                statusSelect.value = data.status;
+            .select("id, username, email, status, avatar_url")
+            .order("username", { ascending: true });
+ 
+        if (error) {
+            userList.innerHTML = `<div class="empty-state" style="color:#e05050">Ошибка: ${error.message}</div>`;
+            return;
+        }
+        renderUsers(data || []);
+ 
+        // sync my status selector
+        if (currentUser) {
+            const me = (data || []).find(u => u.id === currentUser.id);
+            if (me && me.status) {
+                document.querySelectorAll(".status-opt").forEach(el => {
+                    el.classList.toggle("selected", el.dataset.status === me.status);
+                });
+                selectedStatus = me.status;
             }
         }
     }
-
-    // --- Обновить весь интерфейс (список + свой статус) ---
-    async function refreshUI() {
-        const users = await loadAllUsers();
-        renderUsers(users);
-        if (currentUserId) {
-            await syncMyStatusFromDB();
-        }
-    }
-
-    // --- Настройка Realtime подписки (автообновление) ---
+ 
+    // ---- Realtime ----
     async function setupRealtime() {
-        if (realtimeChannel) {
-            await realtimeChannel.unsubscribe();
-        }
-        
+        if (realtimeChannel) await realtimeChannel.unsubscribe();
         realtimeChannel = supabase
             .channel("profiles-realtime")
-            .on(
-                "postgres_changes",
-                { event: "*", schema: "public", table: "profiles" },
-                (payload) => {
-                    console.log("Realtime изменение:", payload.eventType);
-                    refreshUI();  // просто перезагружаем список
-                }
-            )
-            .subscribe((status) => {
-                if (status === "SUBSCRIBED") {
-                    console.log("✅ Realtime работает");
-                    const badge = document.getElementById("liveBadge");
-                    if (badge) badge.style.background = "#bbf0d0";
-                }
-            });
+            .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
+                refreshUsers();
+            })
+            .subscribe();
     }
-
-    // --- Привязка ID пользователя ---
-    function setUserID(id) {
-        if (!id || id.trim() === "") return false;
-        const cleanId = id.trim();
-        currentUserId = cleanId;
-        localStorage.setItem("monitor_user_id", cleanId);
-        userIdStatus.innerHTML = `✅ Привязан: ${cleanId.slice(0, 16)}…`;
-        userIdInput.value = cleanId;
-        // обновляем интерфейс и статус
-        refreshUI();
-        return true;
+ 
+    // ---- UI helpers ----
+    function showLogin() {
+        loginScreen.style.display = "flex";
+        appScreen.style.display = "none";
+        currentUser = null;
     }
-
-    // --- Инициализация при загрузке страницы ---
-    async function init() {
-        // Восстанавливаем ID из localStorage
-        if (currentUserId) {
-            userIdInput.value = currentUserId;
-            userIdStatus.innerHTML = `🔗 Текущий UUID: ${currentUserId.slice(0, 16)}…`;
-            await syncMyStatusFromDB();
+ 
+    async function showApp(user) {
+        currentUser = user;
+        loginScreen.style.display = "none";
+        appScreen.style.display = "block";
+ 
+        // Set header avatar + name
+        const meta = user.user_metadata || {};
+        const name = meta.full_name || meta.name || user.email || "Пользователь";
+        myName.textContent = name.split(" ")[0];
+ 
+        if (meta.avatar_url || meta.picture) {
+            myAvatar.innerHTML = `<img src="${meta.avatar_url || meta.picture}" alt="">`;
         } else {
-            userIdStatus.innerHTML = "⚡ UUID не задан (нужен для смены статуса)";
+            myAvatar.textContent = initials(name);
         }
-        
-        // Загружаем список пользователей
-        await refreshUI();
-        
-        // Включаем realtime
+ 
+        // Upsert profile on login
+        await supabase.from("profiles").upsert({
+            id: user.id,
+            username: name,
+            email: user.email,
+            avatar_url: meta.avatar_url || meta.picture || null,
+        }, { onConflict: "id", ignoreDuplicates: false });
+ 
+        await refreshUsers();
         await setupRealtime();
     }
-
-    // --- Обработчики событий ---
-    updateBtn.addEventListener("click", async () => {
-        const newStatus = statusSelect.value;
-        if (!currentUserId) {
-            alert("Сначала привяжите ваш UUID! Скопируйте id из таблицы profiles Supabase.");
-            return;
-        }
-        const success = await updateStatus(newStatus);
-        if (success) {
-            // обновляем список (realtime сам догонит, но для уверенности)
-            refreshUI();
+ 
+    // ---- Auth state ----
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session && session.user) {
+            await showApp(session.user);
+        } else {
+            showLogin();
         }
     });
-
-    saveIdBtn.addEventListener("click", () => {
-        const enteredId = userIdInput.value.trim();
-        if (!enteredId) {
-            alert("Вставьте ваш id (UUID) из таблицы profiles в Supabase");
-            return;
-        }
-        // простая проверка на формат UUID (опционально)
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (!uuidPattern.test(enteredId)) {
-            if (!confirm("Введённый ID не похож на стандартный UUID. Убедитесь что скопировали полностью. Продолжить?")) {
-                return;
-            }
-        }
-        setUserID(enteredId);
-    });
-
-    // Запуск
-    init().catch(console.error);
 </script>
 </body>
 </html>
