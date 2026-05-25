@@ -6,56 +6,64 @@
     <title>Монитор статусов Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600&family=Geist:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
  
         * { margin: 0; padding: 0; box-sizing: border-box; }
  
         body {
-            font-family: 'Geist', system-ui, sans-serif;
-            background: #0f0f10;
-            color: #e8e8e4;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background: #f4f6fa;
+            color: #0f172a;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-        }
- 
-        /* ===== LOGIN SCREEN ===== */
-        #loginScreen {
-            display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            padding: 24px;
         }
  
-        .login-box {
-            background: #18181b;
-            border: 1px solid #2a2a2e;
-            border-radius: 20px;
-            padding: 48px 40px;
+        /* ===== АСИММЕТРИЧНЫЙ ЭКРАН ВХОДА ===== */
+        #loginScreen {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff;
+        }
+ 
+        .login-side-decor {
+            flex: 1;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            color: #ffffff;
+        }
+
+        @media (max-width: 768px) { .login-side-decor { display: none; } }
+
+        .login-side-decor h2 { font-size: 42px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.03em; }
+        .login-side-decor p { font-size: 18px; opacity: 0.85; line-height: 1.6; }
+
+        .login-side-form {
             width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
- 
-        .login-logo {
-            font-size: 36px;
-            margin-bottom: 12px;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 40px;
         }
  
         .login-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: #f0f0ec;
-            margin-bottom: 6px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
         }
  
         .login-sub {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 36px;
+            font-size: 15px;
+            color: #64748b;
+            margin-bottom: 40px;
             line-height: 1.5;
         }
  
@@ -63,315 +71,314 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 14px;
             width: 100%;
-            padding: 14px 20px;
-            background: #fff;
-            color: #1a1a1a;
-            border: none;
-            border-radius: 12px;
-            font-family: 'Geist', sans-serif;
-            font-size: 15px;
-            font-weight: 500;
+            padding: 16px;
+            background: #ffffff;
+            color: #1e293b;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.15s, transform 0.1s;
+            transition: all 0.2s ease;
         }
  
-        .btn-google:hover { background: #f0f0f0; }
-        .btn-google:active { transform: scale(0.98); }
-        .btn-google:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-google:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+        .btn-google:active { transform: translateY(1px); }
+        .btn-google:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-google svg { width: 22px; height: 22px; }
  
-        .btn-google svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
- 
-        .login-note {
-            font-size: 12px;
-            color: #555;
-            margin-top: 20px;
-        }
- 
-        /* ===== APP SCREEN ===== */
+        /* ===== ДАШБОРД С ИЗМЕНЕННОЙ КОМПОНОВКОЙ ===== */
         #appScreen {
             display: none;
-            max-width: 1100px;
             width: 100%;
-            margin: 0 auto;
-            padding: 30px 20px;
+            max-width: 1200px;
+            padding: 32px 24px;
         }
  
-        .header {
+        /* Новая модульная сетка: Участники слева (занимают больше места) */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 32px;
+        }
+ 
+        @media (max-width: 850px) { .main-layout { grid-template-columns: 1fr; } }
+ 
+        /* Левая колонка: Профиль + Участники */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .dashboard-header {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-            gap: 14px;
+            border: 1px solid #e9edf5;
         }
- 
-        .header-left h1 {
-            font-size: 22px;
-            font-weight: 600;
-            color: #f0f0ec;
-        }
- 
-        .header-left p {
-            font-size: 13px;
-            color: #666;
-            margin-top: 2px;
-        }
- 
-        .user-pill {
+
+        .profile-section {
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: #18181b;
-            border: 1px solid #2a2a2e;
-            border-radius: 40px;
-            padding: 8px 16px 8px 8px;
+            gap: 16px;
         }
- 
+
         .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #2563eb;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
             color: white;
             overflow: hidden;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
         }
- 
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
- 
-        .user-pill-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: #d0d0cc;
-        }
- 
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .profile-info h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
+        .profile-info p { font-size: 13px; color: #64748b; margin-top: 2px; }
+
         .btn-logout {
-            background: none;
+            background: #fff3f3;
             border: none;
-            color: #555;
+            color: #ef4444;
             font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-family: 'Geist', sans-serif;
-            transition: color 0.15s, background 0.15s;
+            padding: 10px 18px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover { background: #fee2e2; }
+
+        .panel {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03);
+            border: 1px solid #e9edf5;
         }
  
-        .btn-logout:hover { color: #e05050; background: #2a1818; }
- 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.6fr;
-            gap: 20px;
-        }
- 
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
- 
-        .card {
-            background: #18181b;
-            border: 1px solid #2a2a2e;
-            border-radius: 18px;
-            padding: 24px;
-            height: fit-content;
-        }
- 
-        .card-title {
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 13px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #555;
-            margin-bottom: 20px;
+            letter-spacing: -0.01em;
         }
  
-        /* Status selector */
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
+        /* Измененная форма кнопок статуса: теперь это вертикальный список-карточки */
+        .status-vertical-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
         }
  
         .status-opt {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 14px;
-            border-radius: 12px;
-            border: 1px solid #2a2a2e;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-radius: 18px;
+            border: 2px solid #f1f5f9;
             cursor: pointer;
-            background: #111113;
+            background: #f8fafc;
             transition: all 0.2s ease;
-            font-size: 14px;
-            color: #a0a09c;
+            font-size: 15px;
+            font-weight: 600;
+            color: #334155;
         }
  
-        .status-opt:hover { border-color: #3a3a3e; background: #1e1e22; color: #fff; }
+        .status-opt:hover { border-color: #cbd5e1; background: #f1f5f9; }
  
         .status-opt.selected {
-            border-color: #3b82f6;
-            background: #0d1e3a;
-            color: #e0e8ff;
+            border-color: #4f46e5;
+            background: #ffffff;
+            color: #4f46e5;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.08);
+        }
+
+        .status-opt-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
  
         .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 6px;
             flex-shrink: 0;
-            transition: background 0.2s;
         }
  
-        .dot-online  { background: #22c55e; box-shadow: 0 0 8px #22c55e88; }
-        .dot-away    { background: #f59e0b; box-shadow: 0 0 8px #f59e0b88; }
-        .dot-busy    { background: #ef4444; box-shadow: 0 0 8px #ef444488; }
-        .dot-offline { background: #52525b; }
+        .dot-online  { background: #10b981; }
+        .dot-away    { background: #f59e0b; }
+        .dot-busy    { background: #ef4444; }
+        .dot-offline { background: #94a3b8; }
+
+        /* Кастомный чекбокс-круг справа внутри опции выбора */
+        .radio-mark {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .status-opt.selected .radio-mark {
+            border-color: #4f46e5;
+            background: #4f46e5;
+        }
+        .status-opt.selected .radio-mark::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #ffffff;
+            border-radius: 50%;
+        }
  
         .btn-update {
             width: 100%;
-            padding: 13px;
-            background: #3b82f6;
+            padding: 16px;
+            background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 12px;
-            font-family: 'Geist', sans-serif;
+            border-radius: 18px;
+            font-family: inherit;
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 700;
             cursor: pointer;
-            transition: background 0.15s, transform 0.1s;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.25);
         }
  
-        .btn-update:hover { background: #2563eb; }
-        .btn-update:active { transform: scale(0.98); }
-        .btn-update:disabled { background: #222; color: #555; cursor: not-allowed; }
+        .btn-update:hover { background: #4338ca; transform: translateY(-1px); }
+        .btn-update:active { transform: translateY(1px); }
+        .btn-update:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
  
-        /* User list */
+        /* Измененный список участников: более просторный, карточный */
         .user-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 500px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            max-height: 520px;
             overflow-y: auto;
-            padding-right: 4px;
+            padding-right: 6px;
         }
+ 
+        @media (max-width: 580px) { .user-list { grid-template-columns: 1fr; } }
  
         .user-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            background: #111113;
-            border: 1px solid #2a2a2e;
-            border-radius: 14px;
-            transition: border-color 0.2s, background 0.2s;
+            gap: 14px;
+            padding: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            transition: all 0.2s ease;
         }
  
         .user-item.me {
-            border-color: #1e3a70;
-            background: #0a1628;
+            border-color: #c7d2fe;
+            background: linear-gradient(135deg, #f5f7ff 0%, #eef2ff 100%);
         }
  
         .user-av {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #2a2a2e;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            font-weight: 600;
-            color: #a1a1aa;
+            font-size: 15px;
+            font-weight: 700;
+            color: #475569;
             flex-shrink: 0;
             overflow: hidden;
         }
- 
         .user-av img { width: 100%; height: 100%; object-fit: cover; }
  
         .user-info { flex: 1; min-width: 0; }
- 
-        .user-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: #e0e0dc;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
- 
-        .user-name-me { color: #93bbff; font-weight: 600; }
+        .user-name { font-size: 15px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-name-me { color: #4f46e5; }
  
         .status-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 4px;
+            background: #ffffff;
+            padding: 4px 10px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+ 
+        .live-badge {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 12px;
-            color: #71717a;
-            margin-top: 2px;
-        }
- 
-        .live-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11px;
-            color: #22c55e;
-            text-transform: none;
-            letter-spacing: normal;
+            font-weight: 700;
+            color: #10b981;
+            background: #e6fcf5;
+            padding: 6px 12px;
+            border-radius: 12px;
         }
  
         .live-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: #22c55e;
-            animation: pulse 1.8s infinite;
+            background: #10b981;
+            animation: pulse 2s infinite;
         }
  
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(1.1); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
  
-        .empty-state {
-            padding: 40px;
-            text-align: center;
-            color: #71717a;
-            font-size: 14px;
-            line-height: 1.6;
-        }
+        .empty-state { grid-column: 1 / -1; padding: 40px; text-align: center; color: #94a3b8; font-size: 14px; }
  
-        /* Scrollbar */
-        .user-list::-webkit-scrollbar { width: 4px; }
+        /* Скроллбар */
+        .user-list::-webkit-scrollbar { width: 6px; }
         .user-list::-webkit-scrollbar-track { background: transparent; }
-        .user-list::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
-        .user-list::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+        .user-list::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body>
  
 <div id="loginScreen">
-    <div class="login-box">
-        <div class="login-logo">📊</div>
-        <div class="login-title">Монитор статусов</div>
-        <div class="login-sub">Войдите, чтобы видеть и менять<br>статус в реальном времени</div>
+    <div class="login-side-decor">
+        <h2>Монитор статусов</h2>
+        <p>Следите за доступностью команды в реальном времени на едином интерактивном дашборде.</p>
+    </div>
+    <div class="login-side-form">
+        <div class="login-title">Добро пожаловать</div>
+        <div class="login-sub">Авторизуйтесь, чтобы войти в рабочее пространство</div>
  
         <button class="btn-google" id="loginBtn">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -382,75 +389,83 @@
             </svg>
             Войти через Google
         </button>
- 
-        <div class="login-note">Авторизация защищена через Supabase Auth</div>
     </div>
 </div>
  
 <div id="appScreen">
-    <div class="header">
-        <div class="header-left">
-            <h1>Монитор статусов</h1>
-            <p>Живая синхронизация · Supabase Realtime</p>
+    <div class="main-layout">
+        
+        <div class="left-column">
+            <div class="dashboard-header">
+                <div class="profile-section">
+                    <div class="avatar" id="myAvatar">?</div>
+                    <div class="profile-info">
+                        <h3 id="myName">Загрузка…</h3>
+                        <p>Supabase Realtime Sync</p>
+                    </div>
+                </div>
+                <button class="btn-logout" id="logoutBtn">Выйти</button>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    Команда
+                    <span class="live-badge"><span class="live-dot"></span>живой поток</span>
+                </div>
+                <div class="user-list" id="userList">
+                    <div class="empty-state">Синхронизация участников…</div>
+                </div>
+            </div>
         </div>
-        <div class="user-pill">
-            <div class="avatar" id="myAvatar">?</div>
-            <span class="user-pill-name" id="myName">…</span>
-            <button class="btn-logout" id="logoutBtn">Выйти</button>
-        </div>
-    </div>
+
+        <div class="panel" style="height: max-content;">
+            <div class="panel-title">Мой статус</div>
  
-    <div class="grid">
-        <div class="card">
-            <div class="card-title">Мой статус</div>
- 
-            <div class="status-grid">
+            <div class="status-vertical-list">
                 <div class="status-opt selected" data-status="online">
-                    <span class="dot dot-online"></span> Онлайн
+                    <div class="status-opt-left">
+                        <span class="dot dot-online"></span> Онлайн
+                    </div>
+                    <div class="radio-mark"></div>
                 </div>
                 <div class="status-opt" data-status="away">
-                    <span class="dot dot-away"></span> Отошёл
+                    <div class="status-opt-left">
+                        <span class="dot dot-away"></span> Отошёл
+                    </div>
+                    <div class="radio-mark"></div>
                 </div>
                 <div class="status-opt" data-status="busy">
-                    <span class="dot dot-busy"></span> Занят
+                    <div class="status-opt-left">
+                        <span class="dot dot-busy"></span> Занят
+                    </div>
+                    <div class="radio-mark"></div>
                 </div>
                 <div class="status-opt" data-status="offline">
-                    <span class="dot dot-offline"></span> Офлайн
+                    <div class="status-opt-left">
+                        <span class="dot dot-offline"></span> Офлайн
+                    </div>
+                    <div class="radio-mark"></div>
                 </div>
             </div>
  
-            <button class="btn-update" id="updateBtn">Обновить статус</button>
+            <button class="btn-update" id="updateBtn">Обновить присутствие</button>
         </div>
- 
-        <div class="card">
-            <div class="card-title">
-                Участники
-                <span class="live-badge">
-                    <span class="live-dot"></span>realtime
-                </span>
-            </div>
-            <div class="user-list" id="userList">
-                <div class="empty-state">Загрузка данных…</div>
-            </div>
-        </div>
+
     </div>
 </div>
  
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        // ===================== НАСТРОЙКИ SUPABASE =====================
         const SUPABASE_URL = "https://zkgaabzztwrzktxezcoa.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZ2FhYnp6dHdyemt0eGV6Y29hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNzYzNzAsImV4cCI6MjA5Mjg1MjM3MH0.Yy8wA9X-M-fyff92Jlam-NJFFypHZtKrC0mYDNwqGKs";
-        // =================================================================
  
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
  
         let currentUser = null;
         let selectedStatus = "online";
         let realtimeChannel = null;
-        let usersState = []; // Локальный стейт для предотвращения лишних ререндеров
+        let usersState = []; 
  
-        // DOM Элементы
         const loginScreen = document.getElementById("loginScreen");
         const appScreen   = document.getElementById("appScreen");
         const loginBtn    = document.getElementById("loginBtn");
@@ -467,7 +482,6 @@
             offline: { label: "Офлайн",  cls: "dot-offline" },
         };
  
-        // Вспомогательные утилиты
         function initials(name) {
             if (!name) return "?";
             return name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
@@ -477,7 +491,6 @@
             return (s || "").replace(/[&<>]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
         }
  
-        // Переключение экранов
         function showLogin() {
             loginScreen.style.display = "flex";
             appScreen.style.display = "none";
@@ -490,25 +503,16 @@
             }
         }
  
-        // Авторизация
         loginBtn.addEventListener("click", async () => {
             loginBtn.textContent = "Перенаправление…";
             loginBtn.disabled = true;
-            
-            const { error } = await supabase.auth.signInWithOAuth({
+            await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: { redirectTo: window.location.href }
             });
- 
-            if (error) {
-                alert("Ошибка OAuth: " + error.message);
-                loginBtn.textContent = "Войти через Google";
-                loginBtn.disabled = false;
-            }
         });
  
         logoutBtn.addEventListener("click", async () => {
-            // Перед выходом ставим статус offline
             if (currentUser) {
                 await supabase.from("profiles").update({ status: "offline" }).eq("id", currentUser.id);
             }
@@ -516,7 +520,6 @@
             showLogin();
         });
  
-        // Выбор статуса в UI
         document.querySelectorAll(".status-opt").forEach(el => {
             el.addEventListener("click", () => {
                 document.querySelectorAll(".status-opt").forEach(e => e.classList.remove("selected"));
@@ -525,7 +528,6 @@
             });
         });
  
-        // Отправка нового статуса
         updateBtn.addEventListener("click", async () => {
             if (!currentUser) return;
             updateBtn.disabled = true;
@@ -536,18 +538,15 @@
                 .update({ status: selectedStatus })
                 .eq("id", currentUser.id);
  
-            if (error) {
-                alert("Не удалось обновить статус: " + error.message);
-            }
+            if (error) alert("Ошибка: " + error.message);
  
             updateBtn.disabled = false;
-            updateBtn.textContent = "Обновить статус";
+            updateBtn.textContent = "Обновить присутствие";
         });
  
-        // Генерация интерфейса пользователей
         function renderUsers() {
             if (usersState.length === 0) {
-                userList.innerHTML = '<div class="empty-state">Нет участников.<br>Убедитесь, что таблица "profiles" существует и RLS настроена.</div>';
+                userList.innerHTML = '<div class="empty-state">Нет участников.</div>';
                 return;
             }
  
@@ -560,13 +559,12 @@
                     : initials(u.username || u.email);
  
                 return `
-                    <div class="user-item${isMe ? " me" : ""}" id="u-${u.id}">
+                    <div class="user-item${isMe ? " me" : ""}">
                         <div class="user-av">${av}</div>
                         <div class="user-info">
-                            <div class="user-name${isMe ? " user-name-me" : ""}">${name}${isMe ? " · Вы" : ""}</div>
+                            <div class="user-name${isMe ? " user-name-me" : ""}">${name}</div>
                             <div class="status-label">
-                                <span class="dot ${st.cls}"></span>
-                                ${st.label}
+                                <span class="dot ${st.cls}"></span> ${st.label}
                             </div>
                         </div>
                     </div>
@@ -574,22 +572,16 @@
             }).join("");
         }
  
-        // Инициализирующий или резервный запрос данных
         async function fetchInitialUsers() {
             const { data, error } = await supabase
                 .from("profiles")
                 .select("id, username, email, status, avatar_url")
                 .order("username", { ascending: true });
  
-            if (error) {
-                userList.innerHTML = `<div class="empty-state" style="color:#ef4444">Ошибка загрузки: ${error.message}</div>`;
-                return;
-            }
- 
+            if (error) return;
             usersState = data || [];
             renderUsers();
  
-            // Синхронизируем переключатель для текущего пользователя
             if (currentUser) {
                 const me = usersState.find(u => u.id === currentUser.id);
                 if (me && me.status) {
@@ -601,36 +593,25 @@
             }
         }
  
-        // Realtime подписка с умным обновлением локального стейта
         function setupRealtime() {
             if (realtimeChannel) realtimeChannel.unsubscribe();
- 
             realtimeChannel = supabase
                 .channel("profiles-changes")
                 .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, (payload) => {
                     const { eventType, new: newRow, old: oldRow } = payload;
- 
                     if (eventType === "INSERT") {
-                        // Добавляем, если еще нет в списке
-                        if (!usersState.some(u => u.id === newRow.id)) {
-                            usersState.push(newRow);
-                        }
+                        if (!usersState.some(u => u.id === newRow.id)) usersState.push(newRow);
                     } else if (eventType === "UPDATE") {
-                        // Обновляем конкретную запись в памяти
                         usersState = usersState.map(u => u.id === newRow.id ? { ...u, ...newRow } : u);
                     } else if (eventType === "DELETE") {
-                        // Удаляем
                         usersState = usersState.filter(u => u.id === oldRow.id);
                     }
-                    
-                    // Сортируем по имени
                     usersState.sort((a, b) => (a.username || "").localeCompare(b.username || ""));
                     renderUsers();
                 })
                 .subscribe();
         }
  
-        // Точка входа в приложение после успешного логина
         async function showApp(user) {
             currentUser = user;
             loginScreen.style.display = "none";
@@ -638,7 +619,7 @@
  
             const meta = user.user_metadata || {};
             const name = meta.full_name || meta.name || user.email || "Пользователь";
-            myName.textContent = name.split(" ")[0];
+            myName.textContent = name;
  
             if (meta.avatar_url || meta.picture) {
                 myAvatar.innerHTML = `<img src="${meta.avatar_url || meta.picture}" referrerpolicy="no-referrer" alt="">`;
@@ -646,7 +627,6 @@
                 myAvatar.textContent = initials(name);
             }
  
-            // Безопасная инициализация профиля: проверяем, существует ли он
             const { data: profile } = await supabase
                 .from("profiles")
                 .select("status")
@@ -654,7 +634,6 @@
                 .single();
  
             if (!profile) {
-                // Если профиля нет — создаем с дефолтным online статусом
                 await supabase.from("profiles").insert({
                     id: user.id,
                     username: name,
@@ -662,18 +641,14 @@
                     avatar_url: meta.avatar_url || meta.picture || null,
                     status: "online"
                 });
-            } else {
-                // Если профиль есть, но юзер зашел заново — принудительно возвращаем его в онлайн в БД
-                if (profile.status === "offline") {
-                    await supabase.from("profiles").update({ status: "online" }).eq("id", user.id);
-                }
+            } else if (profile.status === "offline") {
+                await supabase.from("profiles").update({ status: "online" }).eq("id", user.id);
             }
  
             await fetchInitialUsers();
             setupRealtime();
         }
  
-        // Слушатель состояния сессии
         supabase.auth.onAuthStateChange((event, session) => {
             if (session?.user) {
                 showApp(session.user);
