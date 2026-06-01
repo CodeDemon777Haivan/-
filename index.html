@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Монитор статусов Pro</title>
+    <title>Монитор статусов Pro + Академия</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
@@ -20,7 +20,7 @@
             justify-content: center;
         }
  
-        /* ===== НОВЫЙ МИНИМАЛИСТИЧНЫЙ ЭКРАН ВХОДА ===== */
+        /* ===== ЭКРАН ВХОДА ===== */
         #loginScreen {
             display: flex;
             align-items: center;
@@ -90,7 +90,6 @@
             padding: 40px 24px;
         }
  
-        /* Шапка в виде единой строки */
         .app-header {
             display: flex;
             align-items: center;
@@ -141,7 +140,7 @@
         }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
  
-        /* Блок смены статуса (Теперь сверху и горизонтальный) */
+        /* Блок смены статуса */
         .status-panel {
             background: #141417;
             border: 1px solid #27272a;
@@ -159,7 +158,6 @@
             margin-bottom: 16px;
         }
  
-        /* Горизонтальный Сегментированный переключатель */
         .status-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -187,7 +185,6 @@
  
         .status-opt:hover { color: #ffffff; background: #141417; }
  
-        /* Специфические стили для выбранных состояний */
         .status-opt[data-status="online"].selected  { background: #15803d; color: #ffffff; }
         .status-opt[data-status="away"].selected    { background: #b45309; color: #ffffff; }
         .status-opt[data-status="busy"].selected    { background: #b91c1c; color: #ffffff; }
@@ -199,7 +196,6 @@
         .dot-busy    { background: #ef4444; }
         .dot-offline { background: #71717a; }
  
-        /* Белая кнопка сохранения изменений */
         .btn-update {
             width: 100%;
             padding: 14px;
@@ -216,7 +212,23 @@
         .btn-update:hover { background: #e4e4e7; }
         .btn-update:disabled { background: #27272a; color: #71717a; cursor: not-allowed; }
  
-        /* Блок команды (Снизу и на всю ширину) */
+        /* Блок статистики (Новый) */
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #141417;
+            border: 1px solid #27272a;
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .stat-val { font-size: 20px; font-weight: 700; color: #fff; margin-top: 4px;}
+        .stat-val.online-count { color: #22c55e; }
+ 
+        /* Блок команды */
         .team-panel {
             background: #141417;
             border: 1px solid #27272a;
@@ -267,11 +279,14 @@
  
         .user-item.me { border-color: #3b82f6; background: rgba(59, 130, 246, 0.03); }
  
-        .user-meta { display: flex; align-items: center; gap: 14px; min-width: 0; }
+        .user-meta { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+        .user-info-text { display: flex; flex-direction: column; min-width: 0; }
         .user-display-name { font-size: 14px; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-display-name.me-tag { color: #3b82f6; }
+        
+        /* Время в учебе под именем */
+        .user-study-time { font-size: 12px; color: #a1a1aa; margin-top: 2px; }
  
-        /* Компактный бейдж статуса в строке пользователя */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -322,6 +337,17 @@
             <button class="btn-logout" id="logoutBtn">Выйти</button>
         </div>
     </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="panel-label" style="margin:0;">Сейчас онлайн</div>
+            <div class="stat-val online-count" id="onlineCounter">0 чел.</div>
+        </div>
+        <div class="stat-card">
+            <div class="panel-label" style="margin:0;">Моё время в учебе</div>
+            <div class="stat-val" id="myStudyTimer">00:00:00</div>
+        </div>
+    </div>
  
     <div class="status-panel">
         <div class="panel-label">Мой текущий статус</div>
@@ -369,6 +395,8 @@
         let currentUser = null;
         let selectedStatus = "online";
         let realtimeChannel = null;
+        let localUsersData = []; // Хранилище для динамического обновления таймеров
+        let globalTimerInterval = null;
  
         const loginScreen = document.getElementById("loginScreen");
         const appScreen   = document.getElementById("appScreen");
@@ -378,6 +406,8 @@
         const userList    = document.getElementById("userList");
         const myAvatar    = document.getElementById("myAvatar");
         const myName      = document.getElementById("myName");
+        const onlineCounter = document.getElementById("onlineCounter");
+        const myStudyTimer  = document.getElementById("myStudyTimer");
  
         const STATUS_META = {
             online:  { label: "Онлайн",  cls: "dot-online"  },
@@ -393,6 +423,15 @@
  
         function escapeHtml(s) {
             return (s || "").replace(/[&<>]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+        }
+
+        // Превращает секунды в формат ЧЧ:ММ:СС
+        function formatSeconds(totalSeconds) {
+            if (totalSeconds < 0 || isNaN(totalSeconds)) totalSeconds = 0;
+            const hrs = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const mins = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const secs = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
+            return `${hrs}:${mins}:${secs}`;
         }
  
         // Логика авторизации Google
@@ -414,10 +453,10 @@
  
         logoutBtn.addEventListener("click", async () => {
             if (currentUser) {
-                // При выходе ставим статус offline
-                await supabase.from("profiles").update({ status: "offline" }).eq("id", currentUser.id);
+                await syncStudyTimeBeforeStatusChange("offline");
             }
             await supabase.auth.signOut();
+            clearInterval(globalTimerInterval);
             showLogin();
         });
  
@@ -430,33 +469,64 @@
             });
         });
  
+        // Хелпер: фиксирует накопленное время перед тем, как сменить статус
+        async function syncStudyTimeBeforeStatusChange(newStatus) {
+            if (!currentUser) return;
+            
+            // Запрашиваем текущие данные из базы
+            const { data: currentProfile } = await supabase
+                .from("profiles")
+                .select("status, study_duration, last_online_at")
+                .eq("id", currentUser.id)
+                .single();
+
+            if (!currentProfile) return;
+
+            let additionalSeconds = 0;
+            // Если старый статус был "online", считаем сколько накапало с момента last_online_at
+            if (currentProfile.status === "online" && currentProfile.last_online_at) {
+                const lastOnline = new Date(currentProfile.last_online_at).getTime();
+                const now = Date.now();
+                if (now > lastOnline) {
+                    additionalSeconds = Math.floor((now - lastOnline) / 1000);
+                }
+            }
+
+            const newDuration = (currentProfile.study_duration || 0) + additionalSeconds;
+            const updatedFields = { 
+                status: newStatus,
+                study_duration: newDuration,
+                last_online_at: newStatus === "online" ? new Date().toISOString() : null
+            };
+
+            await supabase.from("profiles").update(updatedFields).eq("id", currentUser.id);
+        }
+
         // Запись нового значения статуса в Supabase
         updateBtn.addEventListener("click", async () => {
             if (!currentUser) return;
             updateBtn.disabled = true;
             updateBtn.textContent = "Синхронизация…";
  
-            const { error } = await supabase
-                .from("profiles")
-                .update({ status: selectedStatus })
-                .eq("id", currentUser.id);
- 
-            if (error) {
-                alert("Ошибка сохранения статуса: " + error.message);
-            }
+            await syncStudyTimeBeforeStatusChange(selectedStatus);
  
             updateBtn.disabled = false;
             updateBtn.textContent = "Обновить статус в системе";
             await refreshUsers();
         });
  
-        function renderUsers(users) {
-            if (!users || users.length === 0) {
+        function renderUsers() {
+            if (!localUsersData || localUsersData.length === 0) {
                 userList.innerHTML = '<div class="empty-state">Участники не найдены.</div>';
+                onlineCounter.textContent = "0 чел.";
                 return;
             }
  
-            userList.innerHTML = users.map(u => {
+            // Считаем сколько людей сейчас со статусом "online"
+            const onlineCount = localUsersData.filter(u => u.status === 'online').length;
+            onlineCounter.textContent = `${onlineCount} чел.`;
+
+            userList.innerHTML = localUsersData.map(u => {
                 const isMe = currentUser && u.id === currentUser.id;
                 const st = STATUS_META[u.status] || STATUS_META["offline"];
                 const name = escapeHtml(u.username || u.email || "Без имени");
@@ -464,11 +534,21 @@
                     ? `<img src="${escapeHtml(u.avatar_url)}" alt="">`
                     : initials(u.username || u.email);
  
+                // Вычисляем общее время с учетом тикающего онлайна прямо сейчас
+                let totalSec = u.study_duration || 0;
+                if (u.status === 'online' && u.last_online_at) {
+                    const diff = Math.floor((Date.now() - new Date(u.last_online_at).getTime()) / 1000);
+                    if (diff > 0) totalSec += diff;
+                }
+
                 return `
                     <div class="user-item${isMe ? " me" : ""}">
                         <div class="user-meta">
                             <div class="avatar">${av}</div>
-                            <div class="user-display-name${isMe ? " me-tag" : ""}">${name}${isMe ? " (Вы)" : ""}</div>
+                            <div class="user-info-text">
+                                <div class="user-display-name${isMe ? " me-tag" : ""}">${name}${isMe ? " (Вы)" : ""}</div>
+                                <div class="user-study-time" id="timer-${u.id}">В учебе: ${formatSeconds(totalSec)}</div>
+                            </div>
                         </div>
                         <div class="status-badge">
                             <span class="dot ${st.cls}"></span>
@@ -482,7 +562,7 @@
         async function refreshUsers() {
             const { data, error } = await supabase
                 .from("profiles")
-                .select("id, username, email, status, avatar_url")
+                .select("id, username, email, status, avatar_url, study_duration, last_online_at")
                 .order("username", { ascending: true });
  
             if (error) {
@@ -490,11 +570,12 @@
                 return;
             }
             
-            renderUsers(data || []);
+            localUsersData = data || [];
+            renderUsers();
  
-            // Подтягиваем статус текущего юзера из БД для синхронизации UI ползунка
+            // Синхронизируем переключатель интерфейса для текущего юзера
             if (currentUser) {
-                const me = (data || []).find(u => u.id === currentUser.id);
+                const me = localUsersData.find(u => u.id === currentUser.id);
                 if (me && me.status) {
                     document.querySelectorAll(".status-opt").forEach(el => {
                         el.classList.toggle("selected", el.dataset.status === me.status);
@@ -504,6 +585,32 @@
             }
         }
  
+        // Каждую секунду обновляем таймеры на клиенте без лишних запросов к БД
+        function startLocalTimers() {
+            if (globalTimerInterval) clearInterval(globalTimerInterval);
+            
+            globalTimerInterval = setInterval(() => {
+                localUsersData.forEach(u => {
+                    let totalSec = u.study_duration || 0;
+                    if (u.status === 'online' && u.last_online_at) {
+                        const diff = Math.floor((Date.now() - new Date(u.last_online_at).getTime()) / 1000);
+                        if (diff > 0) totalSec += diff;
+                    }
+                    
+                    // Обновляем таймер в списке
+                    const timerEl = document.getElementById(`timer-${u.id}`);
+                    if (timerEl) {
+                        timerEl.textContent = `В учебе: ${formatSeconds(totalSec)}`;
+                    }
+
+                    // Если это я, обновляем мою главную плашку сверху
+                    if (currentUser && u.id === currentUser.id) {
+                        myStudyTimer.textContent = formatSeconds(totalSec);
+                    }
+                });
+            }, 1000);
+        }
+
         async function setupRealtime() {
             if (realtimeChannel) await realtimeChannel.unsubscribe();
             realtimeChannel = supabase
@@ -535,7 +642,6 @@
                 myAvatar.textContent = initials(name);
             }
  
-            // Проверяем, существует ли профиль
             const { data: profile } = await supabase
                 .from("profiles")
                 .select("status")
@@ -543,18 +649,26 @@
                 .single();
  
             if (!profile) {
-                // Если юзер новый, создаём строку со статусом online
+                // Инициализируем запись для нового пользователя
                 await supabase.from("profiles").insert({
                     id: user.id,
                     username: name,
                     email: user.email,
                     avatar_url: meta.avatar_url || meta.picture || null,
-                    status: "online"
+                    status: "online",
+                    study_duration: 0,
+                    last_online_at: new Date().toISOString()
                 });
+            } else if (profile.status === "online") {
+                // Если зашли заново, а статус оставался online — обновляем штамп входа
+                await supabase.from("profiles").update({
+                    last_online_at: new Date().toISOString()
+                }).eq("id", user.id);
             }
  
             await refreshUsers();
             await setupRealtime();
+            startLocalTimers();
         }
  
         supabase.auth.onAuthStateChange(async (event, session) => {
