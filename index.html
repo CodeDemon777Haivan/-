@@ -508,7 +508,7 @@
             loginBtn.disabled = true;
             await supabase.auth.signInWithOAuth({
                 provider: "google",
-                options: { redirectTo: window.location.href }
+                options: { redirectTo: window.location.origin + window.location.pathname }
             });
         });
  
@@ -631,7 +631,7 @@
                 .from("profiles")
                 .select("status")
                 .eq("id", user.id)
-                .single();
+                .maybeSingle(); // Предотвращает критические падения, если профиля еще нет
  
             if (!profile) {
                 await supabase.from("profiles").insert({
@@ -649,11 +649,21 @@
             setupRealtime();
         }
  
-        supabase.auth.onAuthStateChange((event, session) => {
+        // Исправленная и безопасная обработка изменения авторизации
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log("Supabase Auth Event:", event);
+            
             if (session?.user) {
-                showApp(session.user);
+                // Очищаем хэш токены из адресной строки, чтобы страница выглядела красиво
+                if (window.location.hash) {
+                    window.history.replaceState(null, null, window.location.pathname);
+                }
+                await showApp(session.user);
             } else {
-                showLogin();
+                // Показываем форму логина только если страница не находится в процессе чтения токенов OAuth
+                if (event !== 'INITIAL_SESSION' || !window.location.hash) {
+                    showLogin();
+                }
             }
         });
     });
