@@ -6,7 +6,7 @@
     <title>Монитор статусов Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700&display=swap');
  
         * { margin: 0; padding: 0; box-sizing: border-box; }
  
@@ -20,7 +20,7 @@
             justify-content: center;
         }
  
-        /* ===== АСИММЕТРИЧНЫЙ ЭКРАН ВХОДА ===== */
+        /* ===== ЭКРАН ВХОДА ===== */
         #loginScreen {
             display: flex;
             width: 100vw;
@@ -90,7 +90,7 @@
         .btn-google:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-google svg { width: 22px; height: 22px; }
  
-        /* ===== ДАШБОРД С ИЗМЕНЕННОЙ КОМПОНОВКОЙ ===== */
+        /* ===== ДАШБОРД ===== */
         #appScreen {
             display: none;
             width: 100%;
@@ -98,7 +98,6 @@
             padding: 32px 24px;
         }
  
-        /* Новая модульная сетка: Участники слева (занимают больше места) */
         .main-layout {
             display: grid;
             grid-template-columns: 1.8fr 1fr;
@@ -107,7 +106,6 @@
  
         @media (max-width: 850px) { .main-layout { grid-template-columns: 1fr; } }
  
-        /* Левая колонка: Профиль + Участники */
         .left-column {
             display: flex;
             flex-direction: column;
@@ -182,7 +180,6 @@
             letter-spacing: -0.01em;
         }
  
-        /* Измененная форма кнопок статуса: теперь это вертикальный список-карточки */
         .status-vertical-list {
             display: flex;
             flex-direction: column;
@@ -232,7 +229,6 @@
         .dot-busy    { background: #ef4444; }
         .dot-offline { background: #94a3b8; }
 
-        /* Кастомный чекбокс-круг справа внутри опции выбора */
         .radio-mark {
             width: 20px;
             height: 20px;
@@ -274,7 +270,6 @@
         .btn-update:active { transform: translateY(1px); }
         .btn-update:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
  
-        /* Измененный список участников: более просторный, карточный */
         .user-list {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -362,8 +357,6 @@
         }
  
         .empty-state { grid-column: 1 / -1; padding: 40px; text-align: center; color: #94a3b8; font-size: 14px; }
- 
-        /* Скроллбар */
         .user-list::-webkit-scrollbar { width: 6px; }
         .user-list::-webkit-scrollbar-track { background: transparent; }
         .user-list::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
@@ -456,6 +449,7 @@
  
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        // Конфигурация Supabase
         const SUPABASE_URL = "https://zkgaabzztwrzktxezcoa.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZ2FhYnp6dHdyemt0eGV6Y29hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNzYzNzAsImV4cCI6MjA5Mjg1MjM3MH0.Yy8wA9X-M-fyff92Jlam-NJFFypHZtKrC0mYDNwqGKs";
  
@@ -482,6 +476,7 @@
             offline: { label: "Офлайн",  cls: "dot-offline" },
         };
  
+        // Вспомогательные функции отрисовки интерфейса
         function initials(name) {
             if (!name) return "?";
             return name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
@@ -490,60 +485,7 @@
         function escapeHtml(s) {
             return (s || "").replace(/[&<>]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
         }
- 
-        function showLogin() {
-            loginScreen.style.display = "flex";
-            appScreen.style.display = "none";
-            loginBtn.textContent = "Войти через Google";
-            loginBtn.disabled = false;
-            currentUser = null;
-            if (realtimeChannel) {
-                realtimeChannel.unsubscribe();
-                realtimeChannel = null;
-            }
-        }
- 
-        loginBtn.addEventListener("click", async () => {
-            loginBtn.textContent = "Перенаправление…";
-            loginBtn.disabled = true;
-            await supabase.auth.signInWithOAuth({
-                provider: "google",
-                options: { redirectTo: window.location.origin + window.location.pathname }
-            });
-        });
- 
-        logoutBtn.addEventListener("click", async () => {
-            if (currentUser) {
-                await supabase.from("profiles").update({ status: "offline" }).eq("id", currentUser.id);
-            }
-            await supabase.auth.signOut();
-            showLogin();
-        });
- 
-        document.querySelectorAll(".status-opt").forEach(el => {
-            el.addEventListener("click", () => {
-                document.querySelectorAll(".status-opt").forEach(e => e.classList.remove("selected"));
-                el.classList.add("selected");
-                selectedStatus = el.dataset.status;
-            });
-        });
- 
-        updateBtn.addEventListener("click", async () => {
-            if (!currentUser) return;
-            updateBtn.disabled = true;
-            updateBtn.textContent = "Сохранение…";
- 
-            const { error } = await supabase
-                .from("profiles")
-                .update({ status: selectedStatus })
-                .eq("id", currentUser.id);
- 
-            if (error) alert("Ошибка: " + error.message);
- 
-            updateBtn.disabled = false;
-            updateBtn.textContent = "Обновить присутствие";
-        });
- 
+
         function renderUsers() {
             if (usersState.length === 0) {
                 userList.innerHTML = '<div class="empty-state">Нет участников.</div>';
@@ -572,27 +514,90 @@
             }).join("");
         }
  
-        async function fetchInitialUsers() {
-            const { data, error } = await supabase
-                .from("profiles")
-                .select("id, username, email, status, avatar_url")
-                .order("username", { ascending: true });
- 
-            if (error) return;
-            usersState = data || [];
-            renderUsers();
- 
-            if (currentUser) {
-                const me = usersState.find(u => u.id === currentUser.id);
-                if (me && me.status) {
-                    document.querySelectorAll(".status-opt").forEach(el => {
-                        el.classList.toggle("selected", el.dataset.status === me.status);
-                    });
-                    selectedStatus = me.status;
-                }
+        function showLogin() {
+            loginScreen.style.display = "flex";
+            appScreen.style.display = "none";
+            loginBtn.textContent = "Войти через Google";
+            loginBtn.disabled = false;
+            currentUser = null;
+            if (realtimeChannel) {
+                realtimeChannel.unsubscribe();
+                realtimeChannel = null;
             }
         }
  
+        // ==========================================
+        //  ОБЯЗАТЕЛЬНЫЕ ФУНКЦИИ ИЗ ЗАДАНИЯ С SUPABASE
+        // ==========================================
+
+        /**
+         * Функция 1: Обновление текущего статуса пользователя в таблице 'profiles'
+         */
+        async function updateUserStatus(supabaseClient, userId, newStatus) {
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .update({ status: newStatus })
+                .eq('id', userId)
+                .select();
+
+            if (error) throw new Error(error.message);
+            return data[0];
+        }
+
+        /**
+         * Функция 2: Получение полного списка профилей, отсортированного по имени
+         */
+        async function fetchTeamProfiles(supabaseClient) {
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('id, username, email, status, avatar_url')
+                .order('username', { ascending: true });
+
+            if (error) throw new Error(error.message);
+            return data || [];
+        }
+
+        // ==========================================
+        //  ЛОГИКА РАБОТЫ ПРИЛОЖЕНИЯ
+        // ==========================================
+
+        async function fetchInitialUsers() {
+            try {
+                // Используем функцию из задания
+                usersState = await fetchTeamProfiles(supabase);
+                renderUsers();
+ 
+                if (currentUser) {
+                    const me = usersState.find(u => u.id === currentUser.id);
+                    if (me && me.status) {
+                        document.querySelectorAll(".status-opt").forEach(el => {
+                            el.classList.toggle("selected", el.dataset.status === me.status);
+                        });
+                        selectedStatus = me.status;
+                    }
+                }
+            } catch (err) {
+                console.error("Не удалось загрузить пользователей:", err);
+            }
+        }
+
+        updateBtn.addEventListener("click", async () => {
+            if (!currentUser) return;
+            updateBtn.disabled = true;
+            updateBtn.textContent = "Сохранение…";
+ 
+            try {
+                // Используем функцию из задания
+                await updateUserStatus(supabase, currentUser.id, selectedStatus);
+            } catch (error) {
+                alert("Ошибка: " + error.message);
+            }
+ 
+            updateBtn.disabled = false;
+            updateBtn.textContent = "Обновить присутствие";
+        });
+
+        // Реалтайм подписка на изменения в СУБД
         function setupRealtime() {
             if (realtimeChannel) realtimeChannel.unsubscribe();
             realtimeChannel = supabase
@@ -631,7 +636,7 @@
                 .from("profiles")
                 .select("status")
                 .eq("id", user.id)
-                .maybeSingle(); // Предотвращает критические падения, если профиля еще нет
+                .maybeSingle();
  
             if (!profile) {
                 await supabase.from("profiles").insert({
@@ -648,19 +653,45 @@
             await fetchInitialUsers();
             setupRealtime();
         }
+
+        // Авторизация
+        loginBtn.addEventListener("click", async () => {
+            loginBtn.textContent = "Перенаправление…";
+            loginBtn.disabled = true;
+            await supabase.auth.signInWithOAuth({
+                provider: "google",
+                options: { redirectTo: window.location.origin + window.location.pathname }
+            });
+        });
  
-        // Исправленная и безопасная обработка изменения авторизации
+        logoutBtn.addEventListener("click", async () => {
+            if (currentUser) {
+                await supabase.from("profiles").update({ status: "offline" }).eq("id", currentUser.id);
+            }
+            await supabase.auth.signOut();
+            showLogin();
+        });
+ 
+        document.querySelectorAll(".status-opt").forEach(el => {
+            el.addEventListener("click", () => {
+                document.querySelectorAll(".status-opt").forEach(e => e.classList.remove("selected"));
+                el.classList.add("selected");
+                selectedStatus = el.dataset.status;
+            });
+        });
+ 
+        // ИСПРАВЛЕННЫЙ СЛУШАТЕЛЬ СЕССИИ (Фикс бесконечного редиректа)
         supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log("Supabase Auth Event:", event);
+            console.log("Инфо-событие авторизации:", event);
             
             if (session?.user) {
-                // Очищаем хэш токены из адресной строки, чтобы страница выглядела красиво
+                // Если зашли и в строке висит хэш токена от Google — аккуратно чистим его
                 if (window.location.hash) {
                     window.history.replaceState(null, null, window.location.pathname);
                 }
                 await showApp(session.user);
             } else {
-                // Показываем форму логина только если страница не находится в процессе чтения токенов OAuth
+                // Запрещаем вызов формы логина во время первичного разбора хэш-ссылки
                 if (event !== 'INITIAL_SESSION' || !window.location.hash) {
                     showLogin();
                 }
