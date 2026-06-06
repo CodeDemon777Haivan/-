@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Статус Мониторинг</title>
+    <title>FlowSpace</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -12,16 +12,18 @@
             box-sizing: border-box;
         }
 
+        /* Светлая тема (кремовая) */
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #ecfdf5;
+            background: #fef9e8;
             padding: 24px;
             min-height: 100vh;
             transition: all 0.3s;
         }
 
+        /* Тёмная тема (чёрная) */
         body.dark {
-            background: #064e3b;
+            background: #0a0a0a;
         }
 
         .container {
@@ -52,7 +54,7 @@
         }
 
         body.dark .login-card {
-            background: #065f46;
+            background: #1a1a1a;
             color: white;
         }
 
@@ -78,9 +80,9 @@
         }
 
         body.dark .btn-google {
-            background: #047857;
+            background: #2a2a2a;
             color: white;
-            border-color: #059669;
+            border-color: #3a3a3a;
         }
 
         /* Шапка */
@@ -96,18 +98,18 @@
         }
 
         body.dark .header {
-            background: #065f46;
+            background: #1a1a1a;
             color: white;
         }
 
         .logo {
             font-size: 24px;
             font-weight: 700;
-            color: #059669;
+            color: #2c3e50;
         }
 
         body.dark .logo {
-            color: #34d399;
+            color: #ecf0f1;
         }
 
         .user-info {
@@ -119,7 +121,7 @@
         .avatar {
             width: 44px;
             height: 44px;
-            background: #059669;
+            background: #6c5ce7;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -129,7 +131,7 @@
         }
 
         .btn-logout {
-            background: #ef4444;
+            background: #e74c3c;
             color: white;
             border: none;
             padding: 8px 18px;
@@ -153,8 +155,8 @@
         }
 
         body.dark .card {
-            background: #065f46;
-            color: white;
+            background: #1a1a1a;
+            color: #ecf0f1;
         }
 
         .card-full {
@@ -166,7 +168,7 @@
             font-weight: 600;
             margin-bottom: 16px;
             padding-left: 12px;
-            border-left: 4px solid #059669;
+            border-left: 4px solid #6c5ce7;
         }
 
         /* Статусы */
@@ -188,33 +190,33 @@
             transition: all 0.2s;
         }
 
-        .status-btn.study { background: #10b981; }
-        .status-btn.break { background: #f59e0b; }
-        .status-btn.finish { background: #ef4444; }
-        .status-btn.exit { background: #6b7280; }
+        .status-btn.study { background: #0984e3; }
+        .status-btn.break { background: #fdcb6e; color: #2d3436; }
+        .status-btn.finish { background: #e17055; }
+        .status-btn.exit { background: #b2bec3; color: #2d3436; }
 
         /* Таймер */
         .timer {
             text-align: center;
             padding: 20px;
-            background: #ecfdf5;
+            background: #f8f4ea;
             border-radius: 20px;
             margin: 16px 0;
         }
 
         body.dark .timer {
-            background: #047857;
+            background: #2a2a2a;
         }
 
         .timer-display {
             font-size: 32px;
             font-weight: 700;
             font-family: monospace;
-            color: #059669;
+            color: #2c3e50;
         }
 
         body.dark .timer-display {
-            color: #6ee7b7;
+            color: #ecf0f1;
         }
 
         .total-stats {
@@ -237,15 +239,15 @@
             cursor: pointer;
         }
 
-        /* Прогресс достижений (вместо статистики) */
+        /* Прогресс достижений */
         .progress-container {
-            background: #f3f4f6;
+            background: #f3f0e8;
             border-radius: 16px;
             padding: 16px;
             text-align: center;
         }
         body.dark .progress-container {
-            background: #047857;
+            background: #2a2a2a;
         }
         .progress-ring {
             width: 80px;
@@ -258,17 +260,17 @@
         .progress-text {
             font-size: 24px;
             font-weight: 700;
-            fill: #059669;
+            fill: #2c3e50;
         }
         body.dark .progress-text {
-            fill: #6ee7b7;
+            fill: #ecf0f1;
         }
         .progress-label {
             font-size: 13px;
-            color: #374151;
+            color: #5a5a5a;
         }
         body.dark .progress-label {
-            color: #a7f3d0;
+            color: #b0b0b0;
         }
 
         .badge-list {
@@ -282,16 +284,16 @@
             padding: 6px 14px;
             border-radius: 40px;
             font-size: 12px;
-            background: #f3f4f6;
+            background: #f0ede5;
             cursor: pointer;
         }
 
         body.dark .badge {
-            background: #047857;
+            background: #2a2a2a;
         }
 
         .badge.unlocked {
-            background: #10b981;
+            background: #6c5ce7;
             color: white;
         }
 
@@ -309,11 +311,11 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         body.dark .rank-item, body.dark .member {
-            border-bottom-color: #047857;
+            border-bottom-color: #333;
         }
 
         .rank-number {
@@ -321,9 +323,9 @@
             font-weight: 700;
         }
 
-        .rank-number.gold { color: #fbbf24; }
-        .rank-number.silver { color: #9ca3af; }
-        .rank-number.bronze { color: #d97706; }
+        .rank-number.gold { color: #f1c40f; }
+        .rank-number.silver { color: #bdc3c7; }
+        .rank-number.bronze { color: #e67e22; }
 
         .member-left {
             display: flex;
@@ -338,13 +340,13 @@
         }
 
         .online-dot.online {
-            background: #10b981;
-            box-shadow: 0 0 6px #10b981;
+            background: #2ecc71;
+            box-shadow: 0 0 6px #2ecc71;
             animation: pulse 2s infinite;
         }
 
         .online-dot.offline {
-            background: #9ca3af;
+            background: #95a5a6;
         }
 
         @keyframes pulse {
@@ -357,13 +359,13 @@
             height: 280px;
             overflow-y: auto;
             padding: 16px;
-            background: #f9fafb;
+            background: #f8f4ea;
             border-radius: 20px;
             margin-bottom: 16px;
         }
 
         body.dark .chat-messages {
-            background: #047857;
+            background: #2a2a2a;
         }
 
         .message {
@@ -383,12 +385,13 @@
         }
 
         body.dark .message-bubble {
-            background: #065f46;
+            background: #2a2a2a;
             color: white;
+            border: 1px solid #444;
         }
 
         .message-mine .message-bubble {
-            background: #10b981;
+            background: #6c5ce7;
             color: white;
         }
 
@@ -406,20 +409,20 @@
         .chat-input {
             flex: 1;
             padding: 12px 18px;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #ddd;
             border-radius: 60px;
             outline: none;
         }
 
         body.dark .chat-input {
-            background: #047857;
-            border-color: #059669;
+            background: #2a2a2a;
+            border-color: #444;
             color: white;
         }
 
         .chat-send {
             padding: 12px 24px;
-            background: #059669;
+            background: #6c5ce7;
             color: white;
             border: none;
             border-radius: 60px;
@@ -442,8 +445,8 @@
 
 <div id="loginPage" class="login-container">
     <div class="login-card">
-        <h2>📊 Статус Мониторинг</h2>
-        <p>Войдите через Google</p>
+        <h2>✨ FlowSpace</h2>
+        <p>Авторизация через Google</p>
         <button id="googleLogin" class="btn-google">
             <svg width="20" height="20" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -451,72 +454,71 @@
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Google
+            Войти через Google
         </button>
     </div>
 </div>
 
 <div id="app" class="container hidden">
     <div class="header">
-        <div class="logo">📊 Статус Мониторинг</div>
+        <div class="logo">✨ FlowSpace</div>
         <div class="user-info">
             <span id="userName">Загрузка...</span>
             <div class="avatar" id="userAvatar">A</div>
-            <button id="logoutBtn" class="btn-logout">Выйти</button>
-            <button id="themeBtn" class="action-btn theme-btn">🎨 Тема</button>
+            <button id="logoutBtn" class="btn-logout">Завершить сеанс</button>
+            <button id="themeBtn" class="action-btn theme-btn">Визуальный режим</button>
         </div>
     </div>
 
     <div class="grid-2x2">
         <div class="card">
-            <h3>🎯 Моя сессия</h3>
+            <h3>🎯 Активный период</h3>
             <div class="status-buttons">
-                <button class="status-btn study" data-status="study">📚 Учусь</button>
-                <button class="status-btn break" data-status="break">☕ Перерыв</button>
-                <button class="status-btn finish" data-status="finish">🏁 Завершить</button>
-                <button class="status-btn exit" data-status="exit">🚪 Выход</button>
+                <button class="status-btn study" data-status="study">📚 Погружение</button>
+                <button class="status-btn break" data-status="break">☕ Пауза</button>
+                <button class="status-btn finish" data-status="finish">🏁 Финиш</button>
+                <button class="status-btn exit" data-status="exit">🚪 Покинуть</button>
             </div>
             <div class="timer">
                 <div class="timer-display" id="timer">0д 00:00:00</div>
-                <div style="font-size: 12px; margin-top: 8px;">текущая сессия</div>
+                <div style="font-size: 12px; margin-top: 8px;">отсчёт времени</div>
                 <div class="total-stats" id="totalStats" style="margin-top: 12px;"></div>
             </div>
         </div>
 
         <div class="card">
-            <h3>🏆 Мои достижения</h3>
+            <h3>🏆 Собранные артефакты</h3>
             <div class="badge-list" id="achievementsList">Загрузка...</div>
-            <!-- Блок прогресса достижений (вместо кнопки статистики) -->
             <div class="progress-container" id="progressContainer" style="margin-top: 20px;">
                 <div class="progress-ring">
                     <svg width="80" height="80" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="8" />
-                        <circle class="progress-ring-circle" cx="50" cy="50" r="40" fill="none" stroke="#059669" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="251.2" />
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#ddd" stroke-width="8" />
+                        <circle class="progress-ring-circle" cx="50" cy="50" r="40" fill="none" stroke="#6c5ce7" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="251.2" />
                         <text class="progress-text" x="50" y="55" text-anchor="middle" dominant-baseline="middle" font-size="18" font-weight="bold">0/7</text>
                     </svg>
                 </div>
-                <div class="progress-label">выполнено достижений</div>
+                <div class="progress-label">артефактов собрано</div>
             </div>
         </div>
 
         <div class="card">
-            <h3>🏆 Топ студентов</h3>
+            <h3>🏆 Лидеры рейтинга</h3>
             <div class="rank-list" id="ratingList">Загрузка...</div>
         </div>
 
         <div class="card">
-            <h3>👥 Монитор группы</h3>
+            <h3>👥 Участники сейчас</h3>
             <div class="member-list" id="groupList">Загрузка...</div>
         </div>
     </div>
 
     <div class="card card-full">
-        <h3>💬 Общий чат</h3>
+        <h3>💬 Комната общения</h3>
         <div class="chat-messages" id="chatMessages">
             <div style="text-align: center;">Загрузка...</div>
         </div>
         <div class="chat-input-area">
-            <input type="text" class="chat-input" id="messageInput" placeholder="Напишите сообщение...">
+            <input type="text" class="chat-input" id="messageInput" placeholder="Текст сообщения...">
             <button class="chat-send" id="sendBtn">Отправить</button>
         </div>
     </div>
@@ -535,13 +537,13 @@
     let heartbeatInterval = null;
 
     const ACHIEVEMENTS = [
-        { key: 'early_bird', name: '🐦 Ранняя пташка', desc: 'Зашёл до 8:00' },
-        { key: 'first_session', name: '🎓 Первая сессия', desc: 'Первая учебная сессия' },
-        { key: 'marathoner', name: '🏃 Марафонец', desc: 'Учился 2 часа подряд' },
-        { key: 'hardworker', name: '💪 Трудяга', desc: 'Всего 10+ часов' },
-        { key: 'activist', name: '🎙 Активист', desc: 'Написал 20 сообщений' },
-        { key: 'comeback', name: '🔄 Возвращение', desc: 'Вернулся после перерыва' },
-        { key: 'soul', name: '⭐ Душа компании', desc: 'Написал 50 сообщений' }
+        { key: 'early_bird', name: '🌅 Ранний подъём', desc: 'Вход до 8:00' },
+        { key: 'first_session', name: '🎓 Первое погружение', desc: 'Первая сессия' },
+        { key: 'marathoner', name: '🏃 Марафонец', desc: '2 часа подряд' },
+        { key: 'hardworker', name: '💪 Труженик', desc: 'Всего 10+ часов' },
+        { key: 'activist', name: '🗣 Активист', desc: '20 сообщений' },
+        { key: 'comeback', name: '🔄 Возвращение', desc: 'После паузы' },
+        { key: 'soul', name: '⭐ Душа команды', desc: '50 сообщений' }
     ];
 
     function showNotification(title, message) {
@@ -608,7 +610,7 @@
         if (totalStudySeconds >= 36000) await unlockAchievement('hardworker');
         await loadTotalStats();
         await loadRating();
-        await updateAchievementProgress(); // обновляем прогресс
+        await updateAchievementProgress();
     }
 
     async function unlockAchievement(key) {
@@ -627,7 +629,7 @@
         });
         
         const ach = ACHIEVEMENTS.find(a => a.key === key);
-        if (ach) showNotification('Новое достижение!', ach.name);
+        if (ach) showNotification('Трофей получен!', ach.name);
         await loadAchievements();
         await updateAchievementProgress();
     }
@@ -672,10 +674,10 @@
         }
         
         const statusLabels = {
-            study: '📚 Учусь',
-            break: '☕ Перерыв',
-            finish: '🏁 Завершил',
-            exit: '🚪 Вышел'
+            study: '📚 Погружение',
+            break: '☕ Пауза',
+            finish: '🏁 Финиш',
+            exit: '🚪 Покинуть'
         };
         
         await supabaseClient.from('profiles').update({
@@ -740,7 +742,7 @@
         if (!ratingList) return;
         
         if (!data || data.length === 0) {
-            ratingList.innerHTML = '<div>Нет данных</div>';
+            ratingList.innerHTML = '<div>Пока никого нет</div>';
             return;
         }
         
@@ -756,7 +758,7 @@
             return `
                 <div class="rank-item">
                     <div class="rank-number ${rankClass}">${index + 1}</div>
-                    <div><strong>${escapeHtml(user.username)}</strong> ${user.id === currentUser?.id ? '✓' : ''}</div>
+                    <div><strong>${escapeHtml(user.username)}</strong></div>
                     <div>${hours}ч ${mins}м</div>
                 </div>
             `;
@@ -875,7 +877,7 @@
         });
         channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
             if (payload.new && payload.new.user_id !== currentUser?.id) {
-                showNotification(`Новое сообщение от ${payload.new.username}`, payload.new.message);
+                showNotification(`Новое от ${payload.new.username}`, payload.new.message);
             }
             loadMessages();
         });
@@ -899,7 +901,7 @@
                 username: user.user_metadata?.full_name || user.email?.split('@')[0],
                 email: user.email,
                 status_type: 'exit',
-                status: '🚪 Вышел',
+                status: '🚪 Покинуть',
                 study_seconds: 0,
                 messages_count: 0,
                 last_active: new Date().toISOString()
