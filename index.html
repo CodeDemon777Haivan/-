@@ -227,11 +227,6 @@
         .dot-busy    { background: #ef4444; }
         .dot-offline { background: #94a3b8; }
 
-        .google-icon-wrapper {
-            display: flex;
-            align-items: center;
-        }
-
         .radio-mark {
             width: 20px;
             height: 20px;
@@ -668,32 +663,23 @@
         }
  
         async function updateUserStatus(supabaseClient, userId, newStatus) {
-            console.log('Обновление статуса для', userId, 'на', newStatus);
             const { data, error } = await supabaseClient
                 .from('profiles')
                 .update({ status: newStatus })
                 .eq('id', userId)
                 .select();
 
-            if (error) {
-                console.error('Ошибка обновления статуса:', error);
-                throw new Error(error.message);
-            }
+            if (error) throw new Error(error.message);
             return data[0];
         }
 
         async function fetchTeamProfiles(supabaseClient) {
-            console.log('Загрузка профилей...');
             const { data, error } = await supabaseClient
                 .from('profiles')
                 .select('id, username, email, status, avatar_url')
                 .order('username', { ascending: true });
 
-            if (error) {
-                console.error('Ошибка загрузки профилей:', error);
-                throw new Error(error.message);
-            }
-            console.log('Загружено профилей:', data?.length || 0);
+            if (error) throw new Error(error.message);
             return data || [];
         }
 
@@ -709,32 +695,21 @@
             try {
                 const now = new Date();
                 const hour = now.getHours();
-                console.log('Проверка Ранней пташки, время:', hour);
                 if (hour < 8) {
-                    const { data: existing, error } = await supabase
+                    const { data: existing } = await supabase
                         .from('user_achievements')
                         .select('id')
                         .eq('user_id', userId)
                         .eq('achievement_id', 'early_bird')
                         .maybeSingle();
                     
-                    if (error) {
-                        console.error('Ошибка проверки early_bird:', error);
-                        return;
-                    }
-                    
                     if (!existing) {
-                        console.log('Выдаём achievement Ранняя пташка!');
-                        const { error: insertError } = await supabase.from('user_achievements').insert({
+                        await supabase.from('user_achievements').insert({
                             user_id: userId,
                             achievement_id: 'early_bird'
                         });
-                        if (insertError) {
-                            console.error('Ошибка вставки достижения:', insertError);
-                        } else {
-                            await incrementScore(userId, 10);
-                            await renderAchievements(userId);
-                        }
+                        await incrementScore(userId, 10);
+                        await renderAchievements(userId);
                     }
                 }
             } catch (err) {
@@ -744,31 +719,20 @@
 
         async function checkFirstStatus(userId) {
             try {
-                console.log('Проверка Первого статуса');
-                const { data: existing, error } = await supabase
+                const { data: existing } = await supabase
                     .from('user_achievements')
                     .select('id')
                     .eq('user_id', userId)
                     .eq('achievement_id', 'first_status')
                     .maybeSingle();
                 
-                if (error) {
-                    console.error('Ошибка проверки first_status:', error);
-                    return;
-                }
-                
                 if (!existing) {
-                    console.log('Выдаём достижение Первый статус!');
-                    const { error: insertError } = await supabase.from('user_achievements').insert({
+                    await supabase.from('user_achievements').insert({
                         user_id: userId,
                         achievement_id: 'first_status'
                     });
-                    if (insertError) {
-                        console.error('Ошибка вставки достижения:', insertError);
-                    } else {
-                        await incrementScore(userId, 5);
-                        await renderAchievements(userId);
-                    }
+                    await incrementScore(userId, 5);
+                    await renderAchievements(userId);
                 }
             } catch (err) {
                 console.error('Ошибка в checkFirstStatus:', err);
@@ -777,29 +741,21 @@
 
         async function incrementScore(userId, points) {
             try {
-                console.log('Увеличиваем счёт для', userId, 'на', points);
-                const { data: existing, error } = await supabase
+                const { data: existing } = await supabase
                     .from('user_scores')
                     .select('score')
                     .eq('user_id', userId)
                     .maybeSingle();
                 
-                if (error) {
-                    console.error('Ошибка получения счёта:', error);
-                    return;
-                }
-                
                 if (existing) {
-                    const { error: updateError } = await supabase
+                    await supabase
                         .from('user_scores')
                         .update({ score: existing.score + points })
                         .eq('user_id', userId);
-                    if (updateError) console.error('Ошибка обновления счёта:', updateError);
                 } else {
-                    const { error: insertError } = await supabase
+                    await supabase
                         .from('user_scores')
                         .insert({ user_id: userId, score: points });
-                    if (insertError) console.error('Ошибка вставки счёта:', insertError);
                 }
                 
                 await renderRating();
@@ -809,35 +765,19 @@
         }
 
         async function fetchUserAchievements(userId) {
-            try {
-                console.log('Загрузка достижений для', userId);
-                const { data, error } = await supabase
-                    .from('user_achievements')
-                    .select('achievement_id, earned_at')
-                    .eq('user_id', userId);
-                
-                if (error) {
-                    console.error('Ошибка загрузки достижений:', error);
-                    return [];
-                }
-                console.log('Достижения загружены:', data);
-                return data || [];
-            } catch (err) {
-                console.error('Ошибка в fetchUserAchievements:', err);
-                return [];
-            }
+            const { data } = await supabase
+                .from('user_achievements')
+                .select('achievement_id, earned_at')
+                .eq('user_id', userId);
+            return data || [];
         }
 
         async function renderAchievements(userId) {
-            if (!userId) {
-                console.log('Нет userId для отрисовки достижений');
-                return;
-            }
+            if (!userId) return;
             
             try {
                 const earned = await fetchUserAchievements(userId);
                 const earnedIds = earned.map(e => e.achievement_id);
-                console.log('Полученные достижения:', earnedIds);
                 
                 achievementsList.innerHTML = ALL_ACHIEVEMENTS.map(ach => {
                     const isEarned = earnedIds.includes(ach.id);
@@ -862,24 +802,12 @@
         }
 
         async function fetchTopStudents(limit = 10) {
-            try {
-                console.log('Загрузка топа студентов...');
-                const { data, error } = await supabase
-                    .from('user_scores')
-                    .select('user_id, score, profiles(username, email, avatar_url)')
-                    .order('score', { ascending: false })
-                    .limit(limit);
-                
-                if (error) {
-                    console.error('Ошибка загрузки рейтинга:', error);
-                    return [];
-                }
-                console.log('Рейтинг загружен:', data);
-                return data || [];
-            } catch (err) {
-                console.error('Ошибка в fetchTopStudents:', err);
-                return [];
-            }
+            const { data } = await supabase
+                .from('user_scores')
+                .select('user_id, score, profiles(username, email, avatar_url)')
+                .order('score', { ascending: false })
+                .limit(limit);
+            return data || [];
         }
 
         async function renderRating() {
@@ -916,13 +844,10 @@
                 }).join("");
             } catch (err) {
                 console.error('Ошибка в renderRating:', err);
-                ratingList.innerHTML = '<div class="empty-state">Ошибка отрисовки рейтинга</div>';
+                ratingList.innerHTML = '<div class="empty-state">Ошибка загрузки рейтинга</div>';
             }
         }
 
-        // --- НЕДОСТАЮЩАЯ ЛОГИКА И ИНИЦИАЛИЗАЦИЯ ---
-
-        // Переключение визуального выбора статуса в меню
         document.querySelectorAll('.status-opt').forEach(opt => {
             opt.addEventListener('click', () => {
                 document.querySelectorAll('.status-opt').forEach(item => item.classList.remove('selected'));
@@ -931,30 +856,27 @@
             });
         });
 
-        // Кнопка обновления статуса
         updateBtn.addEventListener('click', async () => {
             if (!currentUser) return;
+            updateBtn.disabled = true;
+            updateBtn.textContent = "Обновление...";
             try {
-                updateBtn.disabled = true;
-                updateBtn.textContent = "Обновление...";
                 await updateUserStatus(supabase, currentUser.id, selectedStatus);
                 await checkFirstStatus(currentUser.id);
-                updateBtn.textContent = "Обновить присутствие";
             } catch (err) {
                 alert("Не удалось обновить статус: " + err.message);
-            } finally {
-                updateBtn.disabled = false;
             }
+            updateBtn.disabled = false;
+            updateBtn.textContent = "Обновить присутствие";
         });
 
-        // Кнопка логина (Google OAuth)
         loginBtn.addEventListener('click', async () => {
             loginBtn.disabled = true;
             loginBtn.textContent = "Вход...";
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.href
+                    redirectTo: window.location.origin + window.location.pathname
                 }
             });
             if (error) {
@@ -964,54 +886,69 @@
             }
         });
 
-        // Кнопка выхода
         logoutBtn.addEventListener('click', async () => {
+            if (currentUser) {
+                await supabase.from("profiles").update({ status: "offline" }).eq("id", currentUser.id);
+            }
             await supabase.auth.signOut();
         });
 
-        // Настройка Realtime канала для отслеживания изменений в таблице profiles
         function setupRealtime() {
+            if (realtimeChannel) realtimeChannel.unsubscribe();
             realtimeChannel = supabase
                 .channel('public:profiles')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async (payload) => {
-                    console.log('Получено Realtime обновление:', payload);
-                    // Перезапрашиваем актуальный список профилей команды
                     const profiles = await fetchTeamProfiles(supabase);
                     usersState = profiles;
                     renderUsers();
-                    await renderRating();
                 })
                 .subscribe();
         }
 
-        // Слушатель состояния авторизации Supabase
         supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log("Смена статуса авторизации:", event, session);
-            
-            if (session && session.user) {
-                currentUser = session.user;
+            if (session?.user) {
+                if (window.location.hash) {
+                    window.history.replaceState(null, null, window.location.pathname);
+                }
                 
-                // Переключаем экраны
+                currentUser = session.user;
                 loginScreen.style.display = "none";
                 appScreen.style.display = "block";
                 
-                // Рендерим профиль текущего юзера в шапке
-                const profileName = currentUser.user_metadata?.full_name || currentUser.email;
-                myName.textContent = profileName;
-                if (currentUser.user_metadata?.avatar_url) {
-                    myAvatar.innerHTML = `<img src="${currentUser.user_metadata.avatar_url}" referrerpolicy="no-referrer">`;
+                const meta = session.user.user_metadata || {};
+                const name = meta.full_name || meta.name || session.user.email || "Пользователь";
+                myName.textContent = name;
+                
+                if (meta.avatar_url || meta.picture) {
+                    myAvatar.innerHTML = `<img src="${meta.avatar_url || meta.picture}" referrerpolicy="no-referrer" alt="">`;
                 } else {
-                    myAvatar.textContent = initials(profileName);
+                    myAvatar.textContent = initials(name);
                 }
 
-                // Загружаем начальные данные приложения
                 try {
+                    const { data: profile } = await supabase
+                        .from("profiles")
+                        .select("status")
+                        .eq("id", session.user.id)
+                        .maybeSingle();
+
+                    if (!profile) {
+                        await supabase.from("profiles").insert({
+                            id: session.user.id,
+                            username: name,
+                            email: session.user.email,
+                            avatar_url: meta.avatar_url || meta.picture || null,
+                            status: "online"
+                        });
+                    } else if (profile.status === "offline") {
+                        await supabase.from("profiles").update({ status: "online" }).eq("id", session.user.id);
+                    }
+
                     const profiles = await fetchTeamProfiles(supabase);
                     usersState = profiles;
                     renderUsers();
 
-                    // Если у текущего юзера уже сохранен статус в бд, выбираем его в радио-кнопках
-                    const myProfile = profiles.find(p => p.id === currentUser.id);
+                    const myProfile = profiles.find(p => p.id === session.user.id);
                     if (myProfile && myProfile.status) {
                         selectedStatus = myProfile.status;
                         document.querySelectorAll('.status-opt').forEach(opt => {
@@ -1019,20 +956,17 @@
                         });
                     }
 
-                    await renderAchievements(currentUser.id);
+                    await renderAchievements(session.user.id);
                     await renderRating();
-                    
-                    // Запуск Realtime-стрима
                     setupRealtime();
-
-                    // Проверка ачивки "Ранняя пташка" при успешном входе
-                    await checkEarlyBird(currentUser.id);
-
+                    await checkEarlyBird(session.user.id);
                 } catch (err) {
-                    console.error("Ошибка при инициализации данных:", err);
+                    console.error("Ошибка при инициализации:", err);
                 }
             } else {
-                showLogin();
+                if (event !== 'INITIAL_SESSION' || !window.location.hash) {
+                    showLogin();
+                }
             }
         });
     });
